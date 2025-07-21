@@ -18,7 +18,7 @@ Tracking your progress and celebrating your milestones along the way
 
 ### Steps to use the project
 1. Generate a desire curriculum through ChatGPT
-  Using the following prompt to generate a JSON formatted curricula
+  Using the following prompt to generate a JSON-formatted curriculum
   ```
   I have a problem or project I want to solve:
 
@@ -53,3 +53,59 @@ Tracking your progress and celebrating your milestones along the way
 3. Use the app and receive a daily reminder
 
 ### Database Schema
+2 main containers: users and curricula
+
+#### 🗂 Container: users
+
+**Partition Key:** `/PartitionKey` using the userId
+
+Stores curricula per user.
+
+Example Document:
+
+```json
+{
+    "id": "user-uuid",
+    "PartitionKey": "user-uuid",
+    "email": "user-email@gmail.com",
+    "displayName": "User Name",
+}
+```
+
+#### 🗂 Container: curricula
+
+**Partition Key:** `/PartitionKey` using the userId
+
+Stores curricula per user.
+
+Example Document:
+
+```json
+{
+  "id": "curriculum-uuid",
+  "userId": "user-uuid",
+  "PartitionKey": "user-uuid"
+  "courseTitle": "System Design Basics",
+  "nextReminderDate": "2025-07-21T07:00:00Z",
+  "topics": [
+      {
+        "title": "What is System Design?",
+        "description": "An overview of system design concepts.",
+        "estimatedTime": 600,
+        "question": "Explain the difference between high-level and low-level design.",
+        "resources": ["https://example.com/system-design-intro"]
+      }
+    ]
+}
+```
+
+---
+
+| Field             | Type    | Description                                   | Required |
+| ----------------- | ------- | --------------------------------------------- | -------- |
+| id                | string  | Primary key (curriculumId)                   | Yes      |
+| curriculumId      | string  | Unique curriculum identifier (UUID)          | Yes      |
+| userId            | string  | Associated user ID                           | Yes      |
+| courseTitle       | string  | Title of the course                          | Yes      |
+| nextReminderDate  | string  | ISO timestamp for next reminder              | Yes      |
+| topics            | array   | Topics within the curriculum                 | Yes      |
