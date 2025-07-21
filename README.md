@@ -89,6 +89,7 @@ Example Document:
   "nextReminderDate": "2025-07-21T07:00:00Z",
   "topics": [
       {
+        "id": "topic-uuid",
         "title": "What is System Design?",
         "description": "An overview of system design concepts.",
         "estimatedTime": 600,
