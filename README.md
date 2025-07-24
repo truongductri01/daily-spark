@@ -3,11 +3,9 @@
 
 `Daily Spark` is a personal learning assistant that helps you stay consistent and achieve your goals by:
 
-Creating structured learning curricula for any problem or project you want to solve
-
-Sending daily reminders with your learning topics to keep you on track
-
-Tracking your progress and celebrating your milestones along the way
+- Creating structured learning curricula for any problem or project you want to solve
+- Sending daily reminders with your learning topics to keep you on track
+- Tracking your progress and celebrating your milestones along the way
 
 ### ✨ Key Features
 - Create a learning curriculum by providing a problem statement and desired learning time frame
@@ -16,76 +14,105 @@ Tracking your progress and celebrating your milestones along the way
 - Track your progress as you complete topics and modules
 - Celebrate achievements to keep motivation high
 
-### Steps to use the project
-1. Generate a desire curriculum through ChatGPT
-  Using the following prompt to generate a JSON-formatted curriculum
-  ```
-  I have a problem or project I want to solve:
+### Project Structure
+- `Model/Records.cs`: Contains C# record definitions for User, Currciculum, Topic, and enums TopicStatus, CurriculumStatus.
+- `Contract/ReturnTopic.cs`: Contains the ReturnTopic record used for API responses.
+- `QueryCurriculumTopicsByUserId.cs`: Main Azure Function logic for querying user and curriculum topics.
+- `local.settings.json`: Local configuration for Azure Functions runtime and Cosmos DB connection.
 
-  Problem Statement: [Your project or problem you want to solve]
-  Time Range: [How long do you want to take to complete this?]
-  Daily Commitment: [How much time do you want to spend on this each day?]
-  
-  You are a Learning Partner AI. Your task is to help me create a curriculum that will guide me to complete this project or solve this problem. Structure the learning plan in a clean JSON format. Each topic should include:
-  
-  - title (string)
-  - description (string)
-  - estimatedTime (number of seconds)
-  - question (a question or exercise to confirm my knowledge, string)
-  - resources (an array of any relevant resources)
-  
-  Return only JSON in the following format:
-  
-  {
-    "courseTitle": "",
-    "topics": [
-        {
-          "title": "",
-          "description": "",
-          "estimatedTime": 0,
-          "question": "",
-          "resources": []
-        }
-      ]
-  }
-  ```
-   
-3. Use the app and receive a daily reminder
+### Record Definitions
+#### User
+- `id` (string): User ID (UUID)
+- `PartitionKey` (string): Partition key, same as userId
+- `email` (string): User email
+- `displayName` (string): User display name
+
+#### Currciculum
+- `id` (string): Curriculum ID (UUID)
+- `userId` (string): Associated user ID
+- `PartitionKey` (string): Partition key, same as userId
+- `courseTitle` (string): Title of the course
+- `status` (string): Curriculum status (NotStarted, InProgress, Completed, Active)
+- `nextReminderDate` (DateTime): ISO timestamp for next reminder
+- `topics` (List<Topic>): List of topics in the curriculum
+
+#### Topic
+- `id` (string): Topic ID (UUID)
+- `title` (string): Topic title
+- `description` (string): Topic description
+- `estimatedTime` (int): Estimated time in seconds
+- `question` (string): Knowledge check question
+- `resources` (List<string>): List of resource URLs
+- `status` (string): Topic status (NotStarted, InProgress, Completed)
+
+#### ReturnTopic (API Response)
+- `courseTitle` (string): Title of the course
+- `title` (string): Topic title
+- `description` (string): Topic description
+- `estimatedTime` (string): Human-readable duration (e.g., "10 minutes")
+- `question` (string): Knowledge check question
+- `resources` (List<string>): List of resource URLs
+- `status` (string): Topic status (NotStarted, InProgress, Completed)
+
+### Enums
+- `TopicStatus`: NotStarted, InProgress, Completed (serialized as string)
+- `CurriculumStatus`: NotStarted, InProgress, Completed, Active (serialized as string)
+
+### How to Run Locally
+1. **Set up local.settings.json**
+   Ensure your `daily-spark-function/local.settings.json` contains:
+   ```json
+   {
+     "IsEncrypted": false,
+     "Values": {
+       "AzureWebJobsStorage": "",
+       "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+       "CosmosDbAccountEndpoint": "https://daily-spark-cosmos.documents.azure.com:443/",
+       "CosmosDbApiKey": "<your-cosmos-db-api-key>"
+     }
+   }
+   ```
+   Replace `<your-cosmos-db-api-key>` with your actual Cosmos DB API key.
+
+2. **Start the Function App**
+   In the `daily-spark-function` directory, run:
+   ```sh
+   func start
+   ```
+   or use Visual Studio to run the project.
+
+3. **Test the API**
+   Send a GET or POST request to:
+   ```
+   http://localhost:7071/api/QueryCurriculumTopicsByUserId?userId=<your-user-id>
+   ```
+   The response will be a list of ReturnTopic objects with all fields and enums serialized as strings.
 
 ### Database Schema
-2 main containers: users and curricula
-
 #### 🗂 Container: users
-
 **Partition Key:** `/PartitionKey` using the userId
 
-Stores curricula per user.
-
 Example Document:
-
 ```json
 {
     "id": "user-uuid",
     "PartitionKey": "user-uuid",
     "email": "user-email@gmail.com",
-    "displayName": "User Name",
+    "displayName": "User Name"
 }
 ```
 
 #### 🗂 Container: curricula
-
 **Partition Key:** `/PartitionKey` using the userId
 
-Stores curricula per user.
-
 Example Document:
-
 ```json
 {
   "id": "curriculum-uuid",
   "userId": "user-uuid",
-  "PartitionKey": "user-uuid"
+  "PartitionKey": "user-uuid",
   "courseTitle": "System Design Basics",
+  "status": "Active",
   "nextReminderDate": "2025-07-21T07:00:00Z",
   "topics": [
       {
@@ -94,7 +121,8 @@ Example Document:
         "description": "An overview of system design concepts.",
         "estimatedTime": 600,
         "question": "Explain the difference between high-level and low-level design.",
-        "resources": ["https://example.com/system-design-intro"]
+        "resources": ["https://example.com/system-design-intro"],
+        "status": "NotStarted"
       }
     ]
 }
@@ -110,3 +138,9 @@ Example Document:
 | courseTitle       | string  | Title of the course                          | Yes      |
 | nextReminderDate  | string  | ISO timestamp for next reminder              | Yes      |
 | topics            | array   | Topics within the curriculum                 | Yes      |
+
+---
+
+**Note:**
+- All enum values (status fields) are serialized as strings in API responses.
+- Secrets (API keys) should never be committed to source control. Your `.gitignore` already excludes `local.settings.json`.
