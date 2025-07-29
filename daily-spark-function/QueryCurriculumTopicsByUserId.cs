@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Azure.Identity;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Contract;
+using DailySpark.Functions.Helpers;
 
 // Use alias to avoid ambiguity
 using UserModel = DailySpark.Functions.Model.User;
@@ -54,7 +54,15 @@ public class QueryCurriculumTopicsByUserId
         List<ReturnTopic> returnTopics = BuildReturnTopics(curriculumList);
         _logger.LogInformation($"Total topics found for user {userId}: {returnTopics.Count}");
 
-        return new OkObjectResult(returnTopics);
+        QueryCurriculumTopicsResponse response = new QueryCurriculumTopicsResponse
+        {
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Topics = returnTopics
+        };
+
+        // explicitly create a JSON result using the string serialization helper
+        return JsonResultHelper.CreateJsonResult(response);
     }
 
     private string? GetUserIdFromRequest(HttpRequest req)
