@@ -33,6 +33,7 @@
 - Resource links: color `#2d6cdf`, no underline unless hovered
 
 ## Example Div design
+```html
 <div style="max-width:600px;margin:2rem auto;font-family:Arial,sans-serif;background:#f9f9f9;padding:1rem;color:#222;">
   <h2 style="color:#f7b84a;">🚀 Ready to Spark Your Learning, Tri Truong!</h2>
   <div style="background:#fff;border:1px solid #e3e3e3;padding:1rem;margin-bottom:1rem;">
@@ -45,6 +46,10 @@
     <p>Resources: <a href="https://example.com/system-design-intro" style="color:#2d6cdf;">https://example.com/system-design-intro</a></p>
   </div>
 </div>
+```
+
+### Sample Output
+![Sample Email/Card Design](image.png)
 
 ## Notes
 - Avoid complex effects (no transitions, no box-shadow, no border-radius for email compatibility)
