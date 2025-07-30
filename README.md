@@ -144,3 +144,10 @@ Example Document:
 **Note:**
 - All enum values (status fields) are serialized as strings in API responses.
 - Secrets (API keys) should never be committed to source control. Your `.gitignore` already excludes `local.settings.json`.
+
+---
+
+## 📐 UI & Email Styling Reference
+For details on the color palette, typography, card layout, and HTML structure used in Daily Spark's UI and emails, see the [Styling Design Doc](daily-spark-function/Testing/design.md).
+
+---
