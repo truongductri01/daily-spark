@@ -57,7 +57,7 @@ namespace DailySpark.Functions.Helpers
             sb.Append($"<h2 style='color:#f7b84a;'>🚀 Ready to Spark Your Learning, {displayName}!</h2>");
             foreach (ReturnTopic topic in topics)
             {
-                sb.Append("<div style='background:#fff;border:1px solid #e3e3e3;padding:1rem;margin-bottom:1rem;'>");
+                sb.Append("<div style='background:#fff;border:1px solid #e3e3e3;padding:1rem;margin-bottom:1rem;color:#222;'>");
                 sb.Append($"<span style='font-weight:bold;color:#1a4e8a;background:#eaf1fb;padding:2px 8px;'>");
                 sb.Append(topic.CourseTitle);
                 sb.Append("</span>");
@@ -75,7 +75,11 @@ namespace DailySpark.Functions.Helpers
                 sb.Append("</div>");
             }
             sb.Append("</div>");
-            return sb.ToString();
+            string html = sb.ToString();
+            // Minify: remove newlines, tabs, and extra spaces
+            html = html.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+            while (html.Contains("  ")) html = html.Replace("  ", " ");
+            return html;
         }
     }
 }
