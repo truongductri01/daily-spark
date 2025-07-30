@@ -10,6 +10,7 @@ using DailySpark.Functions.Helpers;
 
 // Use alias to avoid ambiguity
 using UserModel = DailySpark.Functions.Model.User;
+using System.Threading.Tasks;
 
 namespace DailySpark.Functions;
 
@@ -23,7 +24,7 @@ public class QueryCurriculumTopicsByUserId
     }
 
     [Function("QueryCurriculumTopicsByUserId")]
-    public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -61,6 +62,9 @@ public class QueryCurriculumTopicsByUserId
             Topics = returnTopics
         };
 
+        // Send email with curriculum topics
+        await EmailHelper.SendCurriculumTopicsEmailAsync(user.Email, user.DisplayName, returnTopics, _logger);
+
         // explicitly create a JSON result using the string serialization helper
         return JsonResultHelper.CreateJsonResult(response);
     }
@@ -72,8 +76,8 @@ public class QueryCurriculumTopicsByUserId
 
     private (Container usersContainer, Container curriculumContainer) GetCosmosContainers()
     {
-        string? cosmosDbAccountEndpoint = Environment.GetEnvironmentVariable("CosmosDbAccountEndpoint");
-        string? apiKey = Environment.GetEnvironmentVariable("CosmosDbApiKey");
+        string? cosmosDbAccountEndpoint = Environment.GetEnvironmentVariable("COSMOS_DB_ACCOUNT_ENDPOINT");
+        string? apiKey = Environment.GetEnvironmentVariable("COSMOS_DB_API_KEY");
         if (string.IsNullOrEmpty(cosmosDbAccountEndpoint) || string.IsNullOrEmpty(apiKey))
         {
             throw new InvalidOperationException("Cosmos DB endpoint or API key is not configured in environment variables.");
