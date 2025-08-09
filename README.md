@@ -151,3 +151,6 @@ Example Document:
 For details on the color palette, typography, card layout, and HTML structure used in Daily Spark's UI and emails, see the [Styling Design Doc](daily-spark-function/Testing/design.md).
 
 ---
+
+## Start Azurite into azuriteFolder:
+azurite --location ./azuriteFolder --debug ./azuriteFolder/debug.log
