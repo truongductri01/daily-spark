@@ -265,4 +265,14 @@ __pycache__/
 
 # ignore vscode extensions
 .vscode/
-.vscode/*
+.vscode/
+
+# Ignore Azurite emulator files
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__azurite_db_queue__.json
+__azurite_db_queue_extent__.json
+__azurite_db_table__.json
+AzuriteConfig
+__blobstorage__/
+__queuestorage__/
