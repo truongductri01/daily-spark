@@ -7,150 +7,217 @@
 - Sending daily reminders with your learning topics to keep you on track
 - Tracking your progress and celebrating your milestones along the way
 
-### ✨ Key Features
-- Create a learning curriculum by providing a problem statement and desired learning time frame
-- Receive daily reminder emails with structured topics to learn
-- Confirm your knowledge with topic questions or exercises
-- Track your progress as you complete topics and modules
-- Celebrate achievements to keep motivation high
+## 🏗️ Architecture Overview
 
-### Project Structure
-- `Model/Records.cs`: Contains C# record definitions for User, Currciculum, Topic, and enums TopicStatus, CurriculumStatus.
-- `Contract/ReturnTopic.cs`: Contains the ReturnTopic record used for API responses.
-- `QueryCurriculumTopicsByUserId.cs`: Main Azure Function logic for querying user and curriculum topics.
-- `local.settings.json`: Local configuration for Azure Functions runtime and Cosmos DB connection.
+This project is built using **Azure Durable Functions** with the **Azure Functions Worker** runtime, providing a scalable and reliable way to process learning curricula for multiple users in parallel.
 
-### Record Definitions
-#### User
-- `id` (string): User ID (UUID)
-- `PartitionKey` (string): Partition key, same as userId
-- `email` (string): User email
-- `displayName` (string): User display name
+### Core Components
 
-#### Currciculum
-- `id` (string): Curriculum ID (UUID)
-- `userId` (string): Associated user ID
-- `PartitionKey` (string): Partition key, same as userId
-- `courseTitle` (string): Title of the course
-- `status` (string): Curriculum status (NotStarted, InProgress, Completed, Active)
-- `nextReminderDate` (DateTime): ISO timestamp for next reminder
-- `topics` (List<Topic>): List of topics in the curriculum
+#### 1. **Orchestrator Functions**
+- **`ProcessAllUsersOrchestrator`**: Main orchestration that processes all users in parallel
+  - Retrieves all user IDs from Cosmos DB
+  - Executes curriculum processing for each user concurrently
+  - Collects and returns results from all activities
 
-#### Topic
-- `id` (string): Topic ID (UUID)
-- `title` (string): Topic title
-- `description` (string): Topic description
-- `estimatedTime` (int): Estimated time in seconds
-- `question` (string): Knowledge check question
-- `resources` (List<string>): List of resource URLs
-- `status` (string): Topic status (NotStarted, InProgress, Completed)
+#### 2. **Activity Functions**
+- **`GetAllUserIdsActivity`**: Retrieves all user IDs from the users container
+- **`ProcessUserCurriculumTopicsActivity`**: Processes curriculum topics for a single user
+  - Queries user information
+  - Retrieves active curriculum topics
+  - Sends email notifications
+  - Returns structured response
 
-#### ReturnTopic (API Response)
-- `courseTitle` (string): Title of the course
-- `title` (string): Topic title
-- `description` (string): Topic description
-- `estimatedTime` (string): Human-readable duration (e.g., "10 minutes")
-- `question` (string): Knowledge check question
-- `resources` (List<string>): List of resource URLs
-- `status` (string): Topic status (NotStarted, InProgress, Completed)
+#### 3. **Client Functions**
+- **`StartProcessAllUsersClient`**: HTTP trigger to start the orchestration process
+  - Accepts POST/GET requests
+  - Initiates the orchestration
+  - Returns status check endpoints
 
-### Enums
-- `TopicStatus`: NotStarted, InProgress, Completed (serialized as string)
-- `CurriculumStatus`: NotStarted, InProgress, Completed, Active (serialized as string)
+#### 4. **Legacy Functions**
+- **`QueryCurriculumTopicsByUserId`**: Direct HTTP endpoint for single user processing (maintained for backward compatibility)
 
-### How to Run Locally
-1. **Set up local.settings.json**
-   Ensure your `daily-spark-function/local.settings.json` contains:
-   ```json
-   {
-     "IsEncrypted": false,
-     "Values": {
-       "AzureWebJobsStorage": "",
-       "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-       "CosmosDbAccountEndpoint": "https://daily-spark-cosmos.documents.azure.com:443/",
-       "CosmosDbApiKey": "<your-cosmos-db-api-key>"
-     }
-   }
-   ```
-   Replace `<your-cosmos-db-api-key>` with your actual Cosmos DB API key.
+### Design Patterns
 
-2. **Start the Function App**
-   In the `daily-spark-function` directory, run:
-   ```sh
-   func start
-   ```
-   or use Visual Studio to run the project.
+#### **Fan-Out/Fan-In Pattern**
+The orchestrator uses the fan-out/fan-in pattern to process multiple users efficiently:
+1. **Fan-Out**: Start multiple activity functions in parallel
+2. **Fan-In**: Wait for all activities to complete and collect results
 
-3. **Test the API**
-   Send a GET or POST request to:
-   ```
-   http://localhost:7071/api/QueryCurriculumTopicsByUserId?userId=<your-user-id>
-   ```
-   The response will be a list of ReturnTopic objects with all fields and enums serialized as strings.
+#### **Reusable Service Layer**
+- **`UserCurriculumService`**: Centralized business logic for curriculum processing
+  - Used by both the activity function and legacy HTTP function
+  - Handles Cosmos DB operations, email sending, and response building
+  - Promotes code reuse and maintainability
 
-### Database Schema
-#### 🗂 Container: users
-**Partition Key:** `/PartitionKey` using the userId
+## 🚀 Local Development Setup
 
-Example Document:
+### Prerequisites
+- .NET 8.0 SDK
+- Azure Functions Core Tools v4
+- Azurite (for local Azure Storage emulation)
+- Visual Studio Code or Visual Studio
+
+### 1. **Install Dependencies**
+```bash
+# Install Azure Functions Core Tools
+npm install -g azure-functions-core-tools@4 --unsafe-perm true
+
+# Install .NET 8.0 SDK
+# Download from: https://dotnet.microsoft.com/download/dotnet/8.0
+```
+
+### 2. **Configure Local Settings**
+Create/update `daily-spark-function/local.settings.json`:
 ```json
 {
-    "id": "user-uuid",
-    "PartitionKey": "user-uuid",
-    "email": "user-email@gmail.com",
-    "displayName": "User Name"
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "COSMOS_DB_ACCOUNT_ENDPOINT": "https://daily-spark-cosmos.documents.azure.com:443/",
+    "COSMOS_DB_API_KEY": "<your-cosmos-db-api-key>",
+    "COSMOS_DB_DATABASE_ID": "daily-spark",
+    "COSMOS_DB_USER_CONTAINER_ID": "users",
+    "COSMOS_DB_CURRICULUM_CONTAINER_ID": "curricula"
+  }
 }
 ```
 
-#### 🗂 Container: curricula
-**Partition Key:** `/PartitionKey` using the userId
+### 3. **Start Azurite (Local Azure Storage)**
+```bash
+# Create azurite folder
+mkdir azuriteFolder
 
-Example Document:
+# Start Azurite with debug logging
+azurite --location ./azuriteFolder --debug ./azuriteFolder/debug.log
+
+# Keep this running in a separate terminal
+```
+
+### 4. **Run the Function App**
+```bash
+cd daily-spark-function
+
+# Restore packages and build
+dotnet restore
+dotnet build
+
+# Start the function app
+func start
+```
+
+The function app will be available at `http://localhost:7071`
+
+## 🧪 Testing Your Functions
+
+### 1. **Test Individual Functions**
+
+#### **Start Orchestration**
+```bash
+# Start the orchestration process
+curl -X POST http://localhost:7071/api/StartProcessAllUsersClient
+```
+
+#### **Query Single User (Legacy)**
+```bash
+# Test the legacy single-user endpoint
+curl "http://localhost:7071/api/QueryCurriculumTopicsByUserId?userId=<your-user-id>"
+```
+
+### 2. **Monitor Orchestration**
+After starting the orchestration, you'll receive a response with status check endpoints:
 ```json
 {
-  "id": "curriculum-uuid",
-  "userId": "user-uuid",
-  "PartitionKey": "user-uuid",
-  "courseTitle": "System Design Basics",
-  "status": "Active",
-  "nextReminderDate": "2025-07-21T07:00:00Z",
-  "topics": [
-      {
-        "id": "topic-uuid",
-        "title": "What is System Design?",
-        "description": "An overview of system design concepts.",
-        "estimatedTime": 600,
-        "question": "Explain the difference between high-level and low-level design.",
-        "resources": ["https://example.com/system-design-intro"],
-        "status": "NotStarted"
-      }
-    ]
+  "statusQueryGetUri": "http://localhost:7071/runtime/webhooks/durabletask/instances/<instance-id>?taskHub=TestHubName&connection=Storage&code=<code>",
+  "terminatePostUri": "http://localhost:7071/runtime/webhooks/durabletask/instances/<instance-id>/terminate?taskHub=TestHubName&connection=Storage&code=<code>",
+  "purgeDeleteUri": "http://localhost:7071/runtime/webhooks/durabletask/instances/<instance-id>?taskHub=TestHubName&connection=Storage&code=<code>",
+  "sendEventPostUri": "http://localhost:7071/runtime/webhooks/durabletask/instances/<instance-id>/raiseEvent/{eventName}?taskHub=TestHubName&connection=Storage&code=<code>"
 }
 ```
 
----
+#### **Check Orchestration Status**
+```bash
+# Get the current status
+curl "http://localhost:7071/runtime/webhooks/durabletask/instances/<instance-id>?taskHub=TestHubName&connection=Storage&code=<code>"
+```
 
-| Field             | Type    | Description                                   | Required |
-| ----------------- | ------- | --------------------------------------------- | -------- |
-| id                | string  | Primary key (curriculumId)                   | Yes      |
-| curriculumId      | string  | Unique curriculum identifier (UUID)          | Yes      |
-| userId            | string  | Associated user ID                           | Yes      |
-| courseTitle       | string  | Title of the course                          | Yes      |
-| nextReminderDate  | string  | ISO timestamp for next reminder              | Yes      |
-| topics            | array   | Topics within the curriculum                 | Yes      |
+### 3. **View Function Logs**
+Monitor the function execution in your terminal where `func start` is running. You'll see:
+- Orchestration start/completion logs
+- Activity function execution logs
+- User processing progress
+- Email sending confirmations
 
----
+## 🔧 Configuration
 
-**Note:**
-- All enum values (status fields) are serialized as strings in API responses.
-- Secrets (API keys) should never be committed to source control. Your `.gitignore` already excludes `local.settings.json`.
+### Environment Variables
+| Variable | Description | Required |
+|-----------|-------------|----------|
+| `COSMOS_DB_ACCOUNT_ENDPOINT` | Cosmos DB account endpoint URL | Yes |
+| `COSMOS_DB_API_KEY` | Cosmos DB access key | Yes |
+| `COSMOS_DB_DATABASE_ID` | Database name | Yes |
+| `COSMOS_DB_USER_CONTAINER_ID` | Users container name | Yes |
+| `COSMOS_DB_CURRICULUM_CONTAINER_ID` | Curricula container name | Yes |
+
+### Cosmos DB Configuration
+- **Database**: `daily-spark`
+- **Containers**: `users`, `curricula`
+- **Partition Key**: `/PartitionKey` (same as userId)
+
+## 📊 Function Execution Flow
+
+```
+HTTP Request → StartProcessAllUsersClient
+                    ↓
+            ProcessAllUsersOrchestrator
+                    ↓
+            GetAllUserIdsActivity (Get all user IDs)
+                    ↓
+            ProcessUserCurriculumTopicsActivity (Parallel execution for each user)
+                    ↓
+            UserCurriculumService (Business logic)
+                    ↓
+            Return aggregated results
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+#### **Function Discovery Errors**
+- Ensure all function classes have `[Function]` attributes
+- Check that classes are `public`
+- Verify namespace matches project structure
+
+#### **Cosmos DB Connection Issues**
+- Verify environment variables are set correctly
+- Check network connectivity to Cosmos DB
+- Ensure API key has proper permissions
+
+#### **Azurite Connection Issues**
+- Make sure Azurite is running before starting functions
+- Check that `AzureWebJobsStorage` is set to `UseDevelopmentStorage=true`
+- Restart function app after Azurite changes
+
+#### **Parallel Execution Issues**
+- Monitor function logs for individual activity failures
+- Check Cosmos DB RU consumption during parallel execution
+- Consider implementing retry policies for failed activities
+
+### Debug Tips
+1. **Enable Detailed Logging**: Check function logs for step-by-step execution
+2. **Monitor Azurite**: Check `azuriteFolder/debug.log` for storage operations
+3. **Use Status Endpoints**: Monitor orchestration progress via status check URLs
+4. **Test Incrementally**: Start with single user processing before testing orchestration
+
+## 📚 Additional Resources
+
+- [Azure Durable Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/durable/)
+- [Azure Functions Worker Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide)
+- [Cosmos DB .NET SDK](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/sql-api-dotnet-standard-sdk)
+- [Azurite Documentation](https://github.com/Azure/Azurite)
 
 ---
 
 ## 📐 UI & Email Styling Reference
 For details on the color palette, typography, card layout, and HTML structure used in Daily Spark's UI and emails, see the [Styling Design Doc](daily-spark-function/Testing/design.md).
-
----
-
-## Start Azurite into azuriteFolder:
-azurite --location ./azuriteFolder --debug ./azuriteFolder/debug.log
