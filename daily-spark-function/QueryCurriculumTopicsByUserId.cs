@@ -78,14 +78,18 @@ public class QueryCurriculumTopicsByUserId
     {
         string? cosmosDbAccountEndpoint = Environment.GetEnvironmentVariable("COSMOS_DB_ACCOUNT_ENDPOINT");
         string? apiKey = Environment.GetEnvironmentVariable("COSMOS_DB_API_KEY");
-        if (string.IsNullOrEmpty(cosmosDbAccountEndpoint) || string.IsNullOrEmpty(apiKey))
+        string? databaseId = Environment.GetEnvironmentVariable("COSMOS_DB_DATABASE_ID");
+        string? userContainerId = Environment.GetEnvironmentVariable("COSMOS_DB_USER_CONTAINER_ID");
+        string? curriculumContainerId = Environment.GetEnvironmentVariable("COSMOS_DB_CURRICULUM_CONTAINER_ID");
+
+        if (string.IsNullOrEmpty(cosmosDbAccountEndpoint) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(databaseId) || string.IsNullOrEmpty(userContainerId) || string.IsNullOrEmpty(curriculumContainerId))
         {
             throw new InvalidOperationException("Cosmos DB endpoint or API key is not configured in environment variables.");
         }
         CosmosClient cosmosClient = new CosmosClient(cosmosDbAccountEndpoint, apiKey);
-        Database database = cosmosClient.GetDatabase("daily-spark");
-        Container usersContainer = database.GetContainer("users");
-        Container curriculumContainer = database.GetContainer("curricula");
+        Database database = cosmosClient.GetDatabase(databaseId);
+        Container usersContainer = database.GetContainer(userContainerId);
+        Container curriculumContainer = database.GetContainer(curriculumContainerId);
         return (usersContainer, curriculumContainer);
     }
 
