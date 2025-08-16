@@ -16,6 +16,7 @@ public class ProcessAllUsersOrchestrator
 
         // Query Cosmos DB for all user IDs
         IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity", null);
+        logger.LogInformation($"Found {userIds.Count} user IDs.");
 
         List<object> results = new List<object>();
         foreach (string userId in userIds)
@@ -44,19 +45,19 @@ public class GetAllUserIdsActivity
         _logger.LogInformation("Querying Cosmos DB for all user IDs.");
 
         // Read Cosmos DB config from environment
-        string? endpoint = Environment.GetEnvironmentVariable("CosmosDbEndpoint");
-        string? key = Environment.GetEnvironmentVariable("CosmosDbKey");
-        string? databaseId = Environment.GetEnvironmentVariable("CosmosDbDatabaseId");
-        string? containerId = Environment.GetEnvironmentVariable("CosmosDbUserContainerId");
+        string? endpoint = Environment.GetEnvironmentVariable("COSMOS_DB_ACCOUNT_ENDPOINT");
+        string? key = Environment.GetEnvironmentVariable("COSMOS_DB_API_KEY");
+        string? databaseId = Environment.GetEnvironmentVariable("COSMOS_DB_DATABASE_ID");
+        string? userContainerId = Environment.GetEnvironmentVariable("COSMOS_DB_USER_CONTAINER_ID");
 
-        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(key) || string.IsNullOrEmpty(databaseId) || string.IsNullOrEmpty(containerId))
+        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(key) || string.IsNullOrEmpty(databaseId) || string.IsNullOrEmpty(userContainerId))
         {
             _logger.LogError("Cosmos DB configuration is missing.");
             throw new InvalidOperationException("Cosmos DB configuration is missing.");
         }
 
         CosmosClient cosmosClient = new CosmosClient(endpoint, key);
-        Container container = cosmosClient.GetContainer(databaseId, containerId);
+        Container container = cosmosClient.GetContainer(databaseId, userContainerId);
 
         List<string> userIds = new List<string>();
         QueryDefinition query = new QueryDefinition("SELECT c.id FROM c");

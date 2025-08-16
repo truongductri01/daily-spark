@@ -22,10 +22,9 @@ public class StartProcessAllUsersClient
     {
         _logger.LogInformation("Received request to start all-users orchestration.");
 
-        string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
-            orchestratorName: "ProcessAllUsersOrchestrator");
+        string instanceId = await client.ScheduleNewOrchestrationInstanceAsync("ProcessAllUsersOrchestrator");
 
         _logger.LogInformation($"Started orchestration with ID = {instanceId}");
-        return client.CreateCheckStatusResponse(req, instanceId);
+        return await client.CreateCheckStatusResponseAsync(req, instanceId);
     }
 }
