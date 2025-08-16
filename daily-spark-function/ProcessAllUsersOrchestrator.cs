@@ -18,15 +18,21 @@ public class ProcessAllUsersOrchestrator
         IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity", null);
         logger.LogInformation($"Found {userIds.Count} user IDs.");
 
-        List<object> results = new List<object>();
+        // Create tasks for all activities to run in parallel
+        List<Task<object>> tasks = new List<Task<object>>();
         foreach (string userId in userIds)
         {
-            // Fan-out: call activity for each userId
-            object result = await context.CallActivityAsync<object>("ProcessUserCurriculumTopicsActivity", userId);
-            results.Add(result);
+            // Create task for each userId (don't await yet)
+            Task<object> task = context.CallActivityAsync<object>("ProcessUserCurriculumTopicsActivity", userId);
+            tasks.Add(task);
         }
-        logger.LogInformation($"Orchestration completed for {results.Count} users.");
-        return results;
+
+        // Wait for all activities to complete in parallel
+        logger.LogInformation($"Starting parallel execution of {tasks.Count} activities.");
+        object[] results = await Task.WhenAll(tasks);
+
+        logger.LogInformation($"Orchestration completed for {results.Length} users.");
+        return results.ToList();
     }
 }
 
