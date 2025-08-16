@@ -15,7 +15,7 @@ public class ProcessAllUsersOrchestrator
         logger.LogInformation("Starting orchestration to process all users.");
 
         // Query Cosmos DB for all user IDs
-        IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity", (object?)null);
+        IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity", null);
 
         List<object> results = new List<object>();
         foreach (string userId in userIds)
@@ -39,7 +39,7 @@ public class GetAllUserIdsActivity
     }
 
     [Function("GetAllUserIdsActivity")]
-    public async Task<IReadOnlyList<string>> RunAsync([ActivityTrigger] TaskActivityContext context)
+    public async Task<IReadOnlyList<string>> RunAsync([ActivityTrigger] string? input)
     {
         _logger.LogInformation("Querying Cosmos DB for all user IDs.");
 
