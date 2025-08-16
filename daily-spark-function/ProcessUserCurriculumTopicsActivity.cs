@@ -19,7 +19,7 @@ public class ProcessUserCurriculumTopicsActivity
     }
 
     [Function("ProcessUserCurriculumTopicsActivity")]
-    public async Task<QueryCurriculumTopicsResponse?> RunAsync(string userId, FunctionContext context)
+    public async Task<QueryCurriculumTopicsResponse?> RunAsync([ActivityTrigger] string userId, FunctionContext context)
     {
         _logger.LogInformation($"Processing curriculum topics for user: {userId}");
 
