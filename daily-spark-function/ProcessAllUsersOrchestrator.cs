@@ -15,7 +15,7 @@ public class ProcessAllUsersOrchestrator
         logger.LogInformation("Starting orchestration to process all users.");
 
         // Query Cosmos DB for all user IDs
-        IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity", null);
+        IReadOnlyList<string> userIds = await context.CallActivityAsync<IReadOnlyList<string>>("GetAllUserIdsActivity");
         logger.LogInformation($"Found {userIds.Count} user IDs.");
 
         // Create tasks for all activities to run in parallel
