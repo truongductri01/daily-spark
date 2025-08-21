@@ -14,6 +14,26 @@ const CurriculumUploadPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Normalize arbitrary parsed JSON into a safe CurriculumFormData shape for preview
+  const normalizeCurriculumForPreview = (input: any): CurriculumFormData => {
+    const safeTopics = Array.isArray(input?.topics)
+      ? input.topics.map((t: any) => ({
+          title: typeof t?.title === 'string' ? t.title : '',
+          description: typeof t?.description === 'string' ? t.description : '',
+          estimatedTime: typeof t?.estimatedTime === 'string' ? t.estimatedTime : '',
+          question: typeof t?.question === 'string' ? t.question : '',
+          resources: Array.isArray(t?.resources) ? t.resources : [],
+          status: 'NotStarted' as const,
+        }))
+      : [];
+
+    return {
+      courseTitle: typeof input?.courseTitle === 'string' ? input.courseTitle : '',
+      description: typeof input?.description === 'string' ? input.description : '',
+      topics: safeTopics,
+    };
+  };
+
   const handleJsonInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const content = e.target.value;
     setJsonContent(content);
@@ -25,8 +45,22 @@ const CurriculumUploadPage: React.FC = () => {
     }
 
     try {
+      // Quick pre-parse validation: enforce object root
+      const firstNonWs = content.trim()[0];
+      if (firstNonWs !== '{') {
+        setError('Root JSON value must be an object (e.g., { ... })');
+        setParsedData(null);
+        return;
+      }
+
       const parsed = JSON.parse(content);
-      setParsedData(parsed);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setError('Root JSON value must be an object (e.g., { ... })');
+        setParsedData(null);
+        return;
+      }
+
+      setParsedData(normalizeCurriculumForPreview(parsed));
       setError('');
     } catch (err) {
       setError('Invalid JSON format. Please check your syntax.');
@@ -42,8 +76,22 @@ const CurriculumUploadPage: React.FC = () => {
         const content = event.target?.result as string;
         setJsonContent(content);
         try {
+          // Quick pre-parse validation: enforce object root
+          const firstNonWs = content.trim()[0];
+          if (firstNonWs !== '{') {
+            setError('Root JSON value must be an object (e.g., { ... })');
+            setParsedData(null);
+            return;
+          }
+
           const parsed = JSON.parse(content);
-          setParsedData(parsed);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            setError('Root JSON value must be an object (e.g., { ... })');
+            setParsedData(null);
+            return;
+          }
+
+          setParsedData(normalizeCurriculumForPreview(parsed));
           setError('');
         } catch (err) {
           setError('Invalid JSON format in uploaded file. Please check the file content.');
