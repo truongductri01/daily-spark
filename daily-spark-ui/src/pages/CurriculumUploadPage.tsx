@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
-import { Upload, FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
-import { CurriculumFormData, Topic } from '../types';
+import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { CurriculumFormData } from '../types';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, dispatch } = useAppContext();
@@ -68,43 +68,7 @@ const CurriculumUploadPage: React.FC = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
-        setJsonContent(content);
-        try {
-          // Quick pre-parse validation: enforce object root
-          const firstNonWs = content.trim()[0];
-          if (firstNonWs !== '{') {
-            setError('Root JSON value must be an object (e.g., { ... })');
-            setParsedData(null);
-            return;
-          }
-
-          const parsed = JSON.parse(content);
-          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            setError('Root JSON value must be an object (e.g., { ... })');
-            setParsedData(null);
-            return;
-          }
-
-          setParsedData(normalizeCurriculumForPreview(parsed));
-          setError('');
-        } catch (err) {
-          setError('Invalid JSON format in uploaded file. Please check the file content.');
-          setParsedData(null);
-        }
-      };
-      reader.onerror = () => {
-        setError('Error reading file. Please try again.');
-        setParsedData(null);
-      };
-      reader.readAsText(file);
-    }
-  };
+  // File upload removed to simplify flow — paste JSON only
 
   const validateCurriculumData = (data: any): CurriculumFormData | null => {
     // Check if data is null, undefined, or not an object
@@ -295,28 +259,13 @@ const CurriculumUploadPage: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
             <h3 className="text-lg font-medium text-spark-gray-800 mb-4 flex items-center">
-              <Upload className="w-5 h-5 mr-2" />
-              Upload JSON Data
+              <FileText className="w-5 h-5 mr-2" />
+              Paste JSON Data
             </h3>
-            
-            {/* File Upload */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-spark-gray-700 mb-2">
-                Upload JSON File
-              </label>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                className="block w-full text-sm text-spark-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-spark-blue-50 file:text-spark-blue-700 hover:file:bg-spark-blue-100"
-              />
-            </div>
 
             {/* JSON Input */}
             <div>
-              <label className="block text-sm font-medium text-spark-gray-700 mb-2">
-                Or Paste JSON Content
-              </label>
+              <label className="block text-sm font-medium text-spark-gray-700 mb-2">Paste JSON Content</label>
               <textarea
                 value={jsonContent}
                 onChange={handleJsonInput}
