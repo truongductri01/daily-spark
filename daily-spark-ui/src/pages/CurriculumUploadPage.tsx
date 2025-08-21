@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
@@ -13,6 +13,59 @@ const CurriculumUploadPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Resizable split-pane state (left/right panes on large screens)
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isResizingRef = useRef(false);
+  const [leftPaneWidth, setLeftPaneWidth] = useState<number>(50); // percentage
+  const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
+  const resizerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleResizerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    // Indicate resizing and prevent text selection while dragging
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    // Track screen size to enable resizing only on large screens
+    const updateScreenFlag = () => {
+      setIsLargeScreen(window.innerWidth >= 1024); // Tailwind's default lg breakpoint
+    };
+    updateScreenFlag();
+    window.addEventListener('resize', updateScreenFlag);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+      const clamped = Math.min(80, Math.max(20, newLeftPercent));
+      setLeftPaneWidth(clamped);
+    };
+
+    const stopResizing = () => {
+      if (isResizingRef.current) {
+        isResizingRef.current = false;
+        document.body.style.removeProperty('cursor');
+        document.body.style.removeProperty('user-select');
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', stopResizing);
+    return () => {
+      window.removeEventListener('resize', updateScreenFlag);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, []);
+
+  // Compute resizer width as a percentage of the container to avoid overflow (right pane accounts for it)
+  const containerWidthPx = containerRef.current?.getBoundingClientRect().width ?? 0;
+  const resizerWidthPx = resizerRef.current?.getBoundingClientRect().width ?? 0;
+  const resizerWidthPct = containerWidthPx > 0 ? (resizerWidthPx / containerWidthPx) * 100 : 0;
 
   // Normalize arbitrary parsed JSON into a safe CurriculumFormData shape for preview
   const normalizeCurriculumForPreview = (input: any): CurriculumFormData => {
@@ -254,9 +307,12 @@ const CurriculumUploadPage: React.FC = () => {
       </div>
 
       {/* Split Screen Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div ref={containerRef} className="flex flex-col lg:flex-row gap-8 lg:gap-0 overflow-x-hidden">
         {/* Left Side - JSON Input */}
-        <div className="space-y-4">
+        <div
+          className="space-y-4 w-full min-w-0"
+          style={isLargeScreen ? { flexBasis: `${leftPaneWidth}%` } : undefined}
+        >
           <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
             <h3 className="text-lg font-medium text-spark-gray-800 mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2" />
@@ -296,8 +352,21 @@ const CurriculumUploadPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Resizer - draggable on large screens */}
+        <div className="hidden lg:flex items-stretch" aria-hidden={!isLargeScreen}>
+          <div
+            ref={resizerRef}
+            className="w-1.5 bg-spark-gray-200 hover:bg-spark-blue-300 cursor-col-resize rounded"
+            onMouseDown={handleResizerMouseDown}
+            title="Drag to resize"
+          />
+        </div>
+
         {/* Right Side - Preview */}
-        <div className="space-y-4">
+        <div
+          className="space-y-4 w-full min-w-0"
+          style={isLargeScreen ? { flexBasis: `calc(${100 - leftPaneWidth}% - ${resizerWidthPct}%)` } : undefined}
+        >
           <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
             <h3 className="text-lg font-medium text-spark-gray-800 mb-4 flex items-center">
               <Eye className="w-5 h-5 mr-2" />
