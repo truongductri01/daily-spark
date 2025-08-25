@@ -8,5 +8,23 @@
             },
             "enableLiveMetricsFilters": true
         }
+    },
+    "cors": {
+        "allowedOrigins": [
+            "http://localhost:3000"
+        ],
+        "allowedHeaders": [
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With"
+        ],
+        "allowedMethods": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
+        ],
+        "allowCredentials": true
     }
 }

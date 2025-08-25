@@ -6,7 +6,6 @@ using Microsoft.Azure.Cosmos;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Helpers;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Cors;
 
 // Use aliases to avoid ambiguity
 using CurriculumModel = DailySpark.Functions.Model.Curriculum;
@@ -26,7 +25,6 @@ public class GetCurriculaByUserId
     }
 
     [Function("GetCurriculaByUserId")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a get curricula by user ID request.");
@@ -68,7 +66,6 @@ public class GetCurriculum
     }
 
     [Function("GetCurriculum")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a get curriculum request.");
@@ -130,7 +127,6 @@ public class CreateCurriculum
     }
 
     [Function("CreateCurriculum")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a create curriculum request.");
@@ -223,7 +219,6 @@ public class UpdateCurriculum
     }
 
     [Function("UpdateCurriculum")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "put")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed an update curriculum request.");
