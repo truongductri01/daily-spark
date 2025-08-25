@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockApi } from '../services/mockApi';
+
 import { BookOpen, Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 
 const DashboardPage: React.FC = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, loadCurricula } = useAppContext();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCurricula = async () => {
+    const loadData = async () => {
       if (state.user) {
         try {
-          const response = await mockApi.getCurricula(state.user.id);
-          if (response.success) {
-            dispatch({ type: 'SET_CURRICULA', payload: response.data });
-          }
+          await loadCurricula(state.user.id);
         } catch (error) {
           console.error('Failed to load curricula:', error);
         } finally {
@@ -26,8 +23,8 @@ const DashboardPage: React.FC = () => {
       }
     };
 
-    loadCurricula();
-  }, [state.user, dispatch]);
+    loadData();
+  }, [state.user, loadCurricula]);
 
   if (!state.user) {
     return null;

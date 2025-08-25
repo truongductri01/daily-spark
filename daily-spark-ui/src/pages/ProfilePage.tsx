@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockApi } from '../services/mockApi';
+import { useToastHelpers } from '../components/Toast';
+import { ButtonSpinner } from '../components/LoadingSpinner';
 import { User, Save, ArrowLeft } from 'lucide-react';
 import { ProfileFormData } from '../types';
 
 const ProfilePage: React.FC = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, createUser, updateUser, clearErrors } = useAppContext();
+  const { showSuccess, showError } = useToastHelpers();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
     displayName: '',
     email: '',
     userId: ''
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (state.user) {
@@ -28,6 +27,11 @@ const ProfilePage: React.FC = () => {
       setIsEditing(true);
     }
   }, [state.user]);
+
+  // Clear errors when component mounts
+  useEffect(() => {
+    clearErrors();
+  }, [clearErrors]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -48,45 +52,38 @@ const ProfilePage: React.FC = () => {
     e.preventDefault();
     
     if (!formData.displayName.trim() || !formData.email.trim() || !formData.userId.trim()) {
-      setError('Please fill in all fields');
+      showError('Validation Error', 'Please fill in all fields');
       return;
     }
 
     if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address');
+      showError('Validation Error', 'Please enter a valid email address');
       return;
     }
-
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
 
     try {
       if (isEditing) {
         // Update existing user
-        const updatedUser = { ...state.user, ...formData, id: state.user!.id };
-        dispatch({ type: 'SET_USER', payload: updatedUser });
-        setSuccess('Profile updated successfully!');
-        setTimeout(() => navigate('/dashboard'), 1500);
-      } else {
-        // Create new user
-        const response = await mockApi.createUser({
+        await updateUser({
+          id: state.user!.id,
           displayName: formData.displayName,
           email: formData.email
         });
-        
-        if (response.success) {
-          dispatch({ type: 'SET_USER', payload: response.data });
-          setSuccess('Profile created successfully! Redirecting to dashboard...');
-          setTimeout(() => navigate('/dashboard'), 1500);
-        } else {
-          setError(response.message || 'Failed to create profile');
-        }
+        showSuccess('Profile Updated', 'Your profile has been updated successfully!');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        // Create new user
+        await createUser({
+          id: formData.userId,
+          displayName: formData.displayName,
+          email: formData.email
+        });
+        showSuccess('Profile Created', 'Your profile has been created successfully!');
+        setTimeout(() => navigate('/dashboard'), 1500);
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // Error is handled by the context, but we can show a toast here too
+      showError('Operation Failed', 'An error occurred. Please try again.');
     }
   };
 
@@ -145,7 +142,7 @@ const ProfilePage: React.FC = () => {
                   onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-spark-gray-300 rounded-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
                   placeholder="Enter your full name"
-                  disabled={isLoading}
+                  disabled={state.operationLoading.isLoading}
                 />
               </div>
             </div>
@@ -165,7 +162,7 @@ const ProfilePage: React.FC = () => {
                   onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-spark-gray-300 rounded-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
                   placeholder="Enter your email address"
-                  disabled={isLoading}
+                  disabled={state.operationLoading.isLoading}
                 />
               </div>
             </div>
@@ -185,12 +182,12 @@ const ProfilePage: React.FC = () => {
                   onChange={handleInputChange}
                   className="flex-1 appearance-none block w-full px-3 py-2 border border-r-0 border-spark-gray-300 rounded-l-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
                   placeholder="Enter or generate a User ID"
-                  disabled={isLoading}
+                  disabled={state.operationLoading.isLoading}
                 />
                 <button
                   type="button"
                   onClick={generateUserId}
-                  disabled={isLoading}
+                  disabled={state.operationLoading.isLoading}
                   className="inline-flex items-center px-3 py-2 border border-l-0 border-spark-gray-300 rounded-r-md bg-spark-gray-50 text-sm font-medium text-spark-gray-700 hover:bg-spark-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Generate
@@ -202,16 +199,9 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {state.operationLoading.error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="text-sm text-red-700">{error}</div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="text-sm text-green-700">{success}</div>
+                <div className="text-sm text-red-700">{state.operationLoading.error.message}</div>
               </div>
             )}
 
@@ -219,13 +209,13 @@ const ProfilePage: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={state.operationLoading.isLoading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? (
+                {state.operationLoading.isLoading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {isEditing ? 'Updating...' : 'Creating...'}
+                    <ButtonSpinner size="sm" />
+                    <span className="ml-2">{isEditing ? 'Updating...' : 'Creating...'}</span>
                   </div>
                 ) : (
                   <div className="flex items-center">
