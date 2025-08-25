@@ -14,9 +14,17 @@ export interface ApiConfig {
 // Environment-based configuration
 const getApiConfig = (): ApiConfig => {
   const isDevelopment = process.env.NODE_ENV === 'development';
+  const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:7071/api';
+  
+  // Log configuration in development
+  if (isDevelopment) {
+    console.log('[API Config] Base URL:', baseUrl);
+    console.log('[API Config] Environment:', process.env.NODE_ENV);
+    console.log('[API Config] REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
+  }
   
   return {
-    baseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:7071/api',
+    baseUrl,
     timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '10000'),
     retryAttempts: parseInt(process.env.REACT_APP_API_RETRY_ATTEMPTS || '3'),
     retryDelay: parseInt(process.env.REACT_APP_API_RETRY_DELAY || '1000'),

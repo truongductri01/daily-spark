@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-
+import { useToastHelpers } from '../components/Toast';
+import { ButtonSpinner } from '../components/LoadingSpinner';
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, createCurriculum } = useAppContext();
+  const { showSuccess, showError } = useToastHelpers();
   const navigate = useNavigate();
   const [jsonContent, setJsonContent] = useState('');
   const [parsedData, setParsedData] = useState<CurriculumFormData | null>(null);
@@ -251,6 +253,7 @@ const CurriculumUploadPage: React.FC = () => {
     try {
       if (!state.user) {
         setError('User not found. Please log in again.');
+        showError('User Error', 'User not found. Please log in again.');
         return;
       }
       
@@ -265,9 +268,11 @@ const CurriculumUploadPage: React.FC = () => {
       
       await createCurriculum(curriculumData);
       setSuccess('Curriculum created successfully! Redirecting to dashboard...');
+      showSuccess('Curriculum Created', 'Curriculum has been created successfully!');
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       setError('An error occurred. Please try again.');
+      showError('Creation Failed', 'Failed to create curriculum. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -448,8 +453,8 @@ const CurriculumUploadPage: React.FC = () => {
                   >
                     {isLoading ? (
                       <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creating Curriculum...
+                        <ButtonSpinner />
+                        <span className="ml-2">Creating Curriculum...</span>
                       </div>
                     ) : (
                       <div className="flex items-center">

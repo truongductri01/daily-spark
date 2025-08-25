@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-
+import { useToastHelpers } from '../components/Toast';
+import { CardSkeleton } from '../components/LoadingSpinner';
 import { BookOpen, Edit, Trash2, Plus, Calendar, Clock } from 'lucide-react';
 import { Curriculum } from '../types';
 
 const CurriculumListPage: React.FC = () => {
   const { state, loadCurricula, deleteCurriculum } = useAppContext();
+  const { showSuccess, showError } = useToastHelpers();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -18,6 +20,7 @@ const CurriculumListPage: React.FC = () => {
           await loadCurricula(state.user.id);
         } catch (error) {
           console.error('Failed to load curricula:', error);
+          showError('Loading Failed', 'Failed to load your curricula. Please try again.');
         } finally {
           setIsLoading(false);
         }
@@ -25,7 +28,7 @@ const CurriculumListPage: React.FC = () => {
     };
 
     loadData();
-  }, [state.user, loadCurricula]);
+  }, [state.user, loadCurricula, showError]);
 
   const handleDelete = async (curriculumId: string) => {
     if (!state.user) return;
@@ -33,8 +36,10 @@ const CurriculumListPage: React.FC = () => {
     try {
       await deleteCurriculum(curriculumId, state.user.id);
       setDeleteConfirm(null);
+      showSuccess('Curriculum Deleted', 'Curriculum has been deleted successfully.');
     } catch (error) {
       console.error('Failed to delete curriculum:', error);
+      showError('Delete Failed', 'Failed to delete curriculum. Please try again.');
     }
   };
 
@@ -73,8 +78,22 @@ const CurriculumListPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spark-blue-500"></div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardSkeleton />
+          </div>
+          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-spark-gray-200 overflow-hidden">
+              <div className="p-6">
+                <CardSkeleton />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

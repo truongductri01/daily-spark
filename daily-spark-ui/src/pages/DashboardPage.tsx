@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-
+import { useToastHelpers } from '../components/Toast';
+import { CardSkeleton } from '../components/LoadingSpinner';
 import { BookOpen, Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 
 const DashboardPage: React.FC = () => {
   const { state, loadCurricula } = useAppContext();
+  const { showError } = useToastHelpers();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,6 +19,7 @@ const DashboardPage: React.FC = () => {
           await loadCurricula(state.user.id);
         } catch (error) {
           console.error('Failed to load curricula:', error);
+          showError('Loading Failed', 'Failed to load your curricula. Please try again.');
         } finally {
           setIsLoading(false);
         }
@@ -24,7 +27,7 @@ const DashboardPage: React.FC = () => {
     };
 
     loadData();
-  }, [state.user, loadCurricula]);
+  }, [state.user, loadCurricula, showError]);
 
   if (!state.user) {
     return null;
@@ -69,8 +72,20 @@ const DashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spark-blue-500"></div>
+      <div className="space-y-8">
+        <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
+          <CardSkeleton />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
+              <CardSkeleton />
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
+          <CardSkeleton />
+        </div>
       </div>
     );
   }

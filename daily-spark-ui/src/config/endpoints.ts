@@ -1,6 +1,9 @@
 /**
  * API Endpoints Configuration
  * Type-safe endpoint definitions for Azure Functions
+ * 
+ * These endpoints are relative paths that will be combined with the base URL
+ * from the API configuration (e.g., http://localhost:7071/api)
  */
 
 export const ENDPOINTS = {
@@ -27,6 +30,13 @@ export type EndpointName = keyof typeof ENDPOINTS;
 // Helper function to get endpoint URL
 export const getEndpoint = (name: EndpointName): string => {
   return ENDPOINTS[name];
+};
+
+// Helper function to get full URL for an endpoint (combines base URL + endpoint)
+export const getFullEndpointUrl = (name: EndpointName): string => {
+  // Import apiConfig dynamically to avoid circular dependencies
+  const apiConfig = require('./api').apiConfig;
+  return `${apiConfig.baseUrl}${ENDPOINTS[name]}`;
 };
 
 // HTTP Methods for each endpoint

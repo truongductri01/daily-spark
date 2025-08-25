@@ -1,0 +1,1 @@
+1. When Backend api is not ready, Does not show the error as a Toast but reload the page
