@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
-import { BookOpen, Edit, Trash2, Plus, Eye, Calendar, Clock } from 'lucide-react';
+import { BookOpen, Edit, Trash2, Plus, Calendar, Clock } from 'lucide-react';
 import { Curriculum } from '../types';
 
 const CurriculumListPage: React.FC = () => {
@@ -69,13 +69,7 @@ const CurriculumListPage: React.FC = () => {
     return Math.round((completed / total) * 100);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   if (!state.user) {
     return null;
