@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
-import { ArrowLeft, Save, Trash2, Plus, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
 import {
   DndContext,

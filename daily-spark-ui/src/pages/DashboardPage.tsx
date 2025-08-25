@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
 import { BookOpen, Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react';
-import { Curriculum } from '../types';
+
 
 const DashboardPage: React.FC = () => {
   const { state, dispatch } = useAppContext();
