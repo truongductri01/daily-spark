@@ -6,7 +6,6 @@ using Microsoft.Azure.Cosmos;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Helpers;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Cors;
 
 // Use aliases to avoid ambiguity
 using UserModel = DailySpark.Functions.Model.User;
@@ -26,7 +25,6 @@ public class CreateUser
     }
 
     [Function("CreateUser")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a create user request.");
@@ -113,7 +111,6 @@ public class GetUser
     }
 
     [Function("GetUser")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a get user request.");
@@ -165,7 +162,6 @@ public class UpdateUser
     }
 
     [Function("UpdateUser")]
-    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "put")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed an update user request.");
