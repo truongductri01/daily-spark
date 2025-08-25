@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-
+import { useToastHelpers } from '../components/Toast';
+import { ButtonSpinner, LoadingSpinner } from '../components/LoadingSpinner';
 import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
 import {
@@ -161,6 +162,7 @@ const CurriculumEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { state, updateCurriculum } = useAppContext();
+  const { showSuccess, showError } = useToastHelpers();
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -229,6 +231,7 @@ const CurriculumEditPage: React.FC = () => {
     try {
       if (!state.user) {
         setError('User not found. Please log in again.');
+        showError('User Error', 'User not found. Please log in again.');
         return;
       }
       
@@ -237,9 +240,11 @@ const CurriculumEditPage: React.FC = () => {
         userId: state.user.id
       });
       setSuccess('Curriculum updated successfully!');
+      showSuccess('Curriculum Updated', 'Curriculum has been updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('An error occurred. Please try again.');
+      showError('Update Failed', 'Failed to update curriculum. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -252,7 +257,7 @@ const CurriculumEditPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spark-blue-500"></div>
+        <LoadingSpinner size="lg" text="Loading curriculum..." />
       </div>
     );
   }
@@ -300,8 +305,8 @@ const CurriculumEditPage: React.FC = () => {
         >
           {isSaving ? (
             <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Saving...
+              <ButtonSpinner />
+              <span className="ml-2">Saving...</span>
             </div>
           ) : (
             <div className="flex items-center">
