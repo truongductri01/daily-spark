@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.DurableTask.Client;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.AspNetCore.Cors;
 
 namespace DailySpark.Functions;
 
@@ -15,6 +16,7 @@ public class StartProcessAllUsersClient
     }
 
     [Function("StartProcessAllUsersClient")]
+    [EnableCors("AllowReactApp")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "get")] HttpRequestData req,
         [DurableClient] DurableTaskClient client,

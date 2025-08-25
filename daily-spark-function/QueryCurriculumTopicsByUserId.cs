@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using DailySpark.Functions.Helpers;
 using DailySpark.Functions.Contract;
+using Microsoft.AspNetCore.Cors;
 
 namespace DailySpark.Functions;
 
@@ -19,6 +20,7 @@ public class QueryCurriculumTopicsByUserId
     }
 
     [Function("QueryCurriculumTopicsByUserId")]
+    [EnableCors("AllowReactApp")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
