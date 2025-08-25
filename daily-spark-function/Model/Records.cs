@@ -20,7 +20,7 @@ public record User
     public string PartitionKey { get; set; } = string.Empty;
 }
 
-public record Currciculum
+public record Curriculum
 {
     public string PartitionKey { get; set; } = string.Empty;
 
