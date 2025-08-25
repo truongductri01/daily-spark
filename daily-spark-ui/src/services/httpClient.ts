@@ -64,9 +64,8 @@ function buildUrl(baseUrl: string, params?: Record<string, string>): string {
     return baseUrl;
   }
 
-  // Create URL object with a fallback origin for environments where window is not available
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-  const url = new URL(baseUrl, origin);
+  // Use the full baseUrl instead of window.location.origin
+  const url = new URL(baseUrl);
   
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
@@ -74,7 +73,8 @@ function buildUrl(baseUrl: string, params?: Record<string, string>): string {
     }
   });
 
-  return url.pathname + url.search;
+  console.log('Built URL:', url.toString());
+  return url.toString();
 }
 
 /**
