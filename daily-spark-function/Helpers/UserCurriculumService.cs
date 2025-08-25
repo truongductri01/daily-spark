@@ -36,7 +36,7 @@ public class UserCurriculumService
             _logger.LogInformation($"User found: {user.Id}, {user.DisplayName}, {user.Email}");
 
             // Query curriculum topics
-            List<Currciculum> curriculumList = GetCurriculaByUserId(containers.curriculumContainer, userId);
+            List<Curriculum> curriculumList = GetCurriculaByUserId(containers.curriculumContainer, userId);
             if (curriculumList.Count == 0)
             {
                 _logger.LogWarning($"No active curriculum topics found for user with id {userId}.");
@@ -103,7 +103,7 @@ public class UserCurriculumService
         return userIterator.ReadNextAsync().Result.FirstOrDefault();
     }
 
-    private List<Currciculum> GetCurriculaByUserId(Container curriculumContainer, string userId)
+    private List<Curriculum> GetCurriculaByUserId(Container curriculumContainer, string userId)
     {
         string curriculumQuery = "SELECT * FROM c WHERE c.userId = @userId AND c.status = @status";
         QueryDefinition curriculumQueryDefinition = new QueryDefinition(curriculumQuery)
@@ -113,13 +113,13 @@ public class UserCurriculumService
             curriculumQueryDefinition,
             requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(userId) }
         );
-        List<Currciculum> curriculumList = new List<Currciculum>();
+        List<Curriculum> curriculumList = new List<Curriculum>();
         while (curriculumIterator.HasMoreResults)
         {
             FeedResponse<dynamic> response = curriculumIterator.ReadNextAsync().Result;
             foreach (var c in response)
             {
-                var curriculum = JsonConvert.DeserializeObject<Currciculum>(c.ToString());
+                var curriculum = JsonConvert.DeserializeObject<Curriculum>(c.ToString());
                 if (curriculum != null)
                 {
                     curriculumList.Add(curriculum);
@@ -129,9 +129,9 @@ public class UserCurriculumService
         return curriculumList;
     }
 
-    private void LogCurricula(List<Currciculum> curriculumList)
+    private void LogCurricula(List<Curriculum> curriculumList)
     {
-        foreach (Currciculum curriculum in curriculumList)
+        foreach (Curriculum curriculum in curriculumList)
         {
             _logger.LogInformation($"Curriculum found: {curriculum.Id}, {curriculum.CourseTitle}, Status: {curriculum.Status}");
             foreach (Topic topic in curriculum.Topics)
@@ -141,10 +141,10 @@ public class UserCurriculumService
         }
     }
 
-    private List<ReturnTopic> BuildReturnTopics(List<Currciculum> curriculumList)
+    private List<ReturnTopic> BuildReturnTopics(List<Curriculum> curriculumList)
     {
         List<ReturnTopic> returnTopics = new List<ReturnTopic>();
-        foreach (Currciculum curriculum in curriculumList)
+        foreach (Curriculum curriculum in curriculumList)
         {
             foreach (Topic topic in curriculum.Topics)
             {
