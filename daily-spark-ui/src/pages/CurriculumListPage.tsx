@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockApi } from '../services/mockApi';
+
 import { BookOpen, Edit, Trash2, Plus, Calendar, Clock } from 'lucide-react';
 import { Curriculum } from '../types';
 
 const CurriculumListPage: React.FC = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, loadCurricula, deleteCurriculum } = useAppContext();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadCurricula = async () => {
+    const loadData = async () => {
       if (state.user) {
         try {
-          const response = await mockApi.getCurricula(state.user.id);
-          if (response.success) {
-            dispatch({ type: 'SET_CURRICULA', payload: response.data });
-          }
+          await loadCurricula(state.user.id);
         } catch (error) {
           console.error('Failed to load curricula:', error);
         } finally {
@@ -27,16 +24,15 @@ const CurriculumListPage: React.FC = () => {
       }
     };
 
-    loadCurricula();
-  }, [state.user, dispatch]);
+    loadData();
+  }, [state.user, loadCurricula]);
 
   const handleDelete = async (curriculumId: string) => {
+    if (!state.user) return;
+    
     try {
-      const response = await mockApi.deleteCurriculum(curriculumId);
-      if (response.success) {
-        dispatch({ type: 'DELETE_CURRICULUM', payload: curriculumId });
-        setDeleteConfirm(null);
-      }
+      await deleteCurriculum(curriculumId, state.user.id);
+      setDeleteConfirm(null);
     } catch (error) {
       console.error('Failed to delete curriculum:', error);
     }

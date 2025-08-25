@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockApi } from '../services/mockApi';
+
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
 
 const CurriculumUploadPage: React.FC = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, createCurriculum } = useAppContext();
   const navigate = useNavigate();
   const [jsonContent, setJsonContent] = useState('');
   const [parsedData, setParsedData] = useState<CurriculumFormData | null>(null);
@@ -249,14 +249,23 @@ const CurriculumUploadPage: React.FC = () => {
     setSuccess('');
 
     try {
-      const response = await mockApi.createCurriculum(validatedData);
-      if (response.success) {
-        dispatch({ type: 'ADD_CURRICULUM', payload: response.data });
-        setSuccess('Curriculum created successfully! Redirecting to dashboard...');
-        setTimeout(() => navigate('/dashboard'), 1500);
-      } else {
-        setError(response.message || 'Failed to create curriculum');
+      if (!state.user) {
+        setError('User not found. Please log in again.');
+        return;
       }
+      
+      const curriculumData = {
+        ...validatedData,
+        userId: state.user.id,
+        topics: validatedData.topics.map((topic, index) => ({
+          ...topic,
+          id: `temp-${Date.now()}-${index}` // Temporary ID that will be replaced by the server
+        }))
+      };
+      
+      await createCurriculum(curriculumData);
+      setSuccess('Curriculum created successfully! Redirecting to dashboard...');
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

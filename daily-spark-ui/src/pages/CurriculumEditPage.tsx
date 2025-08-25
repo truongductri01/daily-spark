@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockApi } from '../services/mockApi';
+
 import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
 import {
@@ -160,7 +160,7 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
 const CurriculumEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, dispatch } = useAppContext();
+  const { state, updateCurriculum } = useAppContext();
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -227,14 +227,17 @@ const CurriculumEditPage: React.FC = () => {
     setSuccess('');
 
     try {
-      const response = await mockApi.updateCurriculum(curriculum.id, curriculum);
-      if (response.success) {
-        dispatch({ type: 'UPDATE_CURRICULUM', payload: response.data });
-        setSuccess('Curriculum updated successfully!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError(response.message || 'Failed to update curriculum');
+      if (!state.user) {
+        setError('User not found. Please log in again.');
+        return;
       }
+      
+      await updateCurriculum({
+        ...curriculum,
+        userId: state.user.id
+      });
+      setSuccess('Curriculum updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

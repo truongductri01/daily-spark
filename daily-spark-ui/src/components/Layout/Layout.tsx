@@ -4,12 +4,12 @@ import { useAppContext } from '../../context/AppContext';
 import { LogOut, User, BookOpen, Upload, Home } from 'lucide-react';
 
 const Layout: React.FC = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, logout } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+    logout();
     navigate('/login');
   };
 
