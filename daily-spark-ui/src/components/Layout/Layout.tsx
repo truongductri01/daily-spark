@@ -68,7 +68,7 @@ const Layout: React.FC = () => {
                 className="flex items-center text-spark-gray-600 hover:text-spark-blue-600 transition-colors"
               >
                 <User className="w-4 h-4 mr-2" />
-                <span className="hidden sm:block">{state.user.name}</span>
+                <span className="hidden sm:block">{state.user.displayName}</span>
               </button>
               <button
                 onClick={handleLogout}

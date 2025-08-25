@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { mockApi } from '../services/mockApi';
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
-import { CurriculumFormData } from '../types';
+import { CurriculumFormData, CurriculumStatus } from '../types';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, dispatch } = useAppContext();
@@ -82,7 +82,8 @@ const CurriculumUploadPage: React.FC = () => {
 
     return {
       courseTitle: typeof input?.courseTitle === 'string' ? input.courseTitle : '',
-      description: typeof input?.description === 'string' ? input.description : '',
+      status: CurriculumStatus.NotStarted,
+      nextReminderDate: new Date().toISOString(),
       topics: safeTopics,
     };
   };
@@ -132,7 +133,7 @@ const CurriculumUploadPage: React.FC = () => {
 
     // Check if data is an empty object
     if (Object.keys(data).length === 0) {
-      setError('Curriculum data cannot be empty. Please provide courseTitle, description, and topics');
+      setError('Curriculum data cannot be empty. Please provide courseTitle and topics');
       return null;
     }
 
@@ -147,15 +148,7 @@ const CurriculumUploadPage: React.FC = () => {
       return null;
     }
 
-    if (!data.description || data.description === null || data.description === undefined) {
-      setError('Missing required field: description');
-      return null;
-    }
 
-    if (typeof data.description !== 'string' || data.description.trim() === '') {
-      setError('description must be a non-empty string');
-      return null;
-    }
 
     if (!Array.isArray(data.topics)) {
       setError('Missing or invalid required field: topics must be an array');
@@ -227,11 +220,12 @@ const CurriculumUploadPage: React.FC = () => {
 
     return {
       courseTitle: data.courseTitle.trim(),
-      description: data.description.trim(),
+      status: CurriculumStatus.NotStarted,
+      nextReminderDate: new Date().toISOString(),
       topics: data.topics.map((topic: any, index: number) => ({
         title: topic.title.trim(),
         description: topic.description.trim(),
-        estimatedTime: topic.estimatedTime.trim(),
+        estimatedTime: parseInt(topic.estimatedTime) || 0,
         question: topic.question.trim(),
         resources: topic.resources || [],
         status: 'NotStarted' as const
@@ -388,7 +382,7 @@ const CurriculumUploadPage: React.FC = () => {
                   <h4 className="text-xl font-semibold text-spark-blue-600 mb-2">
                     {parsedData.courseTitle}
                   </h4>
-                  <p className="text-spark-gray-600">{parsedData.description}</p>
+                  <p className="text-spark-gray-600">Status: {parsedData.status}</p>
                   <div className="mt-2 text-sm text-spark-gray-500">
                     {parsedData.topics.length} topics
                   </div>
