@@ -1,72 +1,66 @@
-import { User, Curriculum, CurriculumFormData, ApiResponse } from '../types';
+import { User, Curriculum, CurriculumFormData, ApiResponse, TopicStatus, CurriculumStatus } from '../types';
 
 // Mock data
 const mockUser: User = {
   id: "first-user",
-  name: "Demo User",
+  displayName: "Demo User",
   email: "demo@example.com"
 };
 
 const mockCurricula: Curriculum[] = [
   {
     id: "curriculum-1",
+    userId: "first-user",
     courseTitle: "System Design Basics",
-    description: "Learn the fundamentals of system design and architecture",
+    status: CurriculumStatus.InProgress,
+    nextReminderDate: "2024-01-20T14:30:00Z",
     topics: [
       {
         id: "topic-1",
         title: "What is System Design?",
         description: "An overview of system design concepts and principles",
-        estimatedTime: "10 minutes",
+        estimatedTime: 600, // 10 minutes in seconds
         question: "Explain the difference between high-level and low-level design",
         resources: ["https://example.com/system-design-intro"],
-        status: "Completed",
-        order: 1
+        status: TopicStatus.Completed
       },
       {
         id: "topic-2",
         title: "High-Level vs Low-Level Design",
         description: "Understanding different levels of system design",
-        estimatedTime: "15 minutes",
+        estimatedTime: 900, // 15 minutes in seconds
         question: "When would you choose high-level over low-level design?",
         resources: ["https://example.com/design-levels"],
-        status: "InProgress",
-        order: 2
+        status: TopicStatus.InProgress
       },
       {
         id: "topic-3",
         title: "Scalability Patterns",
         description: "Common patterns for building scalable systems",
-        estimatedTime: "20 minutes",
+        estimatedTime: 1200, // 20 minutes in seconds
         question: "What are the main scalability challenges in distributed systems?",
         resources: ["https://example.com/scalability-patterns"],
-        status: "NotStarted",
-        order: 3
+        status: TopicStatus.NotStarted
       },
       {
         id: "topic-4",
         title: "Database Design Principles",
         description: "Best practices for database design and optimization",
-        estimatedTime: "25 minutes",
+        estimatedTime: 1500, // 25 minutes in seconds
         question: "How do you choose between different database types?",
         resources: ["https://example.com/database-design"],
-        status: "InProgress",
-        order: 4
+        status: TopicStatus.InProgress
       },
       {
         id: "topic-5",
         title: "System Architecture Best Practices",
         description: "Industry best practices for system architecture",
-        estimatedTime: "30 minutes",
+        estimatedTime: 1800, // 30 minutes in seconds
         question: "What are the key principles of good system architecture?",
         resources: ["https://example.com/architecture-best-practices"],
-        status: "NotStarted",
-        order: 5
+        status: TopicStatus.NotStarted
       }
-    ],
-    createdAt: "2024-01-15T10:00:00Z",
-    updatedAt: "2024-01-20T14:30:00Z",
-    userId: "first-user"
+    ]
   }
 ];
 
@@ -131,11 +125,8 @@ export const mockApi = {
       id: `curriculum-${Date.now()}`,
       topics: curriculumData.topics.map((topic, index) => ({
         ...topic,
-        id: `topic-${Date.now()}-${index}`,
-        order: index + 1
+        id: `topic-${Date.now()}-${index}`
       })),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
       userId: "first-user"
     };
     

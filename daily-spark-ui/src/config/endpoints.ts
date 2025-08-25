@@ -70,7 +70,7 @@ export const ENDPOINT_QUERY_PARAMS: Record<EndpointName, string[]> = {
   // Additional endpoints
   QUERY_CURRICULUM_TOPICS: ['userId'],
   START_PROCESS_ALL_USERS: []
-} as const;
+};
 
 // Helper function to get required query parameters for an endpoint
 export const getEndpointQueryParams = (name: EndpointName): string[] => {

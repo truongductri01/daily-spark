@@ -11,7 +11,7 @@ const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
-    name: '',
+    displayName: '',
     email: '',
     userId: ''
   });
@@ -21,7 +21,7 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     if (state.user) {
       setFormData({
-        name: state.user.name,
+        displayName: state.user.displayName,
         email: state.user.email,
         userId: state.user.id
       });
@@ -47,7 +47,7 @@ const ProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.email.trim() || !formData.userId.trim()) {
+    if (!formData.displayName.trim() || !formData.email.trim() || !formData.userId.trim()) {
       setError('Please fill in all fields');
       return;
     }
@@ -71,7 +71,7 @@ const ProfilePage: React.FC = () => {
       } else {
         // Create new user
         const response = await mockApi.createUser({
-          name: formData.name,
+          displayName: formData.displayName,
           email: formData.email
         });
         
@@ -138,10 +138,10 @@ const ProfilePage: React.FC = () => {
               <div className="mt-1">
                 <input
                   id="name"
-                  name="name"
+                  name="displayName"
                   type="text"
                   required
-                  value={formData.name}
+                  value={formData.displayName}
                   onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-spark-gray-300 rounded-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
                   placeholder="Enter your full name"

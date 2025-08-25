@@ -83,7 +83,7 @@ const DashboardPage: React.FC = () => {
       {/* Welcome Header */}
       <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
         <h1 className="text-3xl font-bold text-spark-gray-800">
-          Welcome back, {state.user.name}! 🚀
+          Welcome back, {state.user.displayName}! 🚀
         </h1>
         <p className="mt-2 text-spark-gray-600">
           Ready to continue your learning journey? Here's your progress overview.
@@ -197,7 +197,7 @@ const DashboardPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h4 className="text-lg font-medium text-spark-gray-800">{curriculum.courseTitle}</h4>
-                    <p className="text-sm text-spark-gray-600 mt-1">{curriculum.description}</p>
+                    <p className="text-sm text-spark-gray-600 mt-1">{curriculum.topics.length} topics</p>
                     <div className="flex items-center mt-2 space-x-4 text-sm text-spark-gray-500">
                       <span>{curriculum.topics.length} topics</span>
                       <span>•</span>

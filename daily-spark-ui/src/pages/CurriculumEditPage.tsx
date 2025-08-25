@@ -325,11 +325,11 @@ const CurriculumEditPage: React.FC = () => {
       {/* Curriculum Info */}
       <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
         <h2 className="text-2xl font-bold text-spark-blue-600 mb-2">{curriculum.courseTitle}</h2>
-        <p className="text-spark-gray-600 mb-4">{curriculum.description}</p>
+        <p className="text-spark-gray-600 mb-4">{curriculum.topics.length} topics</p>
         <div className="flex items-center space-x-4 text-sm text-spark-gray-500">
           <span>{curriculum.topics.length} topics</span>
           <span>•</span>
-          <span>Last updated: {new Date(curriculum.updatedAt).toLocaleDateString()}</span>
+          <span>Status: {curriculum.status}</span>
         </div>
       </div>
 

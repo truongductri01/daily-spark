@@ -142,7 +142,7 @@ const CurriculumListPage: React.FC = () => {
                         {curriculum.courseTitle}
                       </h3>
                       <p className="text-sm text-spark-gray-600 line-clamp-2">
-                        {curriculum.description}
+                        {curriculum.topics.length} topics
                       </p>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ const CurriculumListPage: React.FC = () => {
                     </span>
                     <span className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
-                      {formatDate(curriculum.updatedAt)}
+                      {curriculum.status}
                     </span>
                   </div>
                   
