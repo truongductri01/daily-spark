@@ -5,6 +5,7 @@ import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
+import { isDemoUser } from '../utils/config';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, createCurriculum } = useAppContext();
@@ -446,23 +447,31 @@ const CurriculumUploadPage: React.FC = () => {
 
                 {/* Create Button */}
                 <div className="pt-4 border-t border-spark-gray-200">
-                  <button
-                    onClick={handleCreateCurriculum}
-                    disabled={isLoading || !parsedData}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center">
-                        <ButtonSpinner />
-                        <span className="ml-2">Creating Curriculum...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <Save className="w-4 h-4 mr-2" />
-                        Create New Curriculum
-                      </div>
-                    )}
-                  </button>
+                  {!isDemoUser(state.user.id) ? (
+                    <button
+                      onClick={handleCreateCurriculum}
+                      disabled={isLoading || !parsedData}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center">
+                          <ButtonSpinner />
+                          <span className="ml-2">Creating Curriculum...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <Save className="w-4 h-4 mr-2" />
+                          Create New Curriculum
+                        </div>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-spark-gray-500">
+                        Demo mode: Create functionality is disabled
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

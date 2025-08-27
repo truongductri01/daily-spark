@@ -5,6 +5,7 @@ import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner, LoadingSpinner } from '../components/LoadingSpinner';
 import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
+import { isDemoUser } from '../utils/config';
 import {
   DndContext,
   closestCenter,
@@ -31,9 +32,10 @@ interface SortableTopicItemProps {
   index: number;
   onStatusChange: (topicId: string, status: Topic['status']) => void;
   onDelete: (topicId: string) => void;
+  isDemoUser: boolean;
 }
 
-const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onStatusChange, onDelete }) => {
+const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onStatusChange, onDelete, isDemoUser }) => {
   const {
     attributes,
     listeners,
@@ -103,12 +105,14 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
                 <option value="InProgress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
-              <button
-                onClick={() => onDelete(topic.id)}
-                className="text-red-600 hover:text-red-800 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {!isDemoUser && (
+                <button
+                  onClick={() => onDelete(topic.id)}
+                  className="text-red-600 hover:text-red-800 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -298,23 +302,29 @@ const CurriculumEditPage: React.FC = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isSaving ? (
-            <div className="flex items-center">
-              <ButtonSpinner />
-              <span className="ml-2">Saving...</span>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </div>
-          )}
-        </button>
+        {!isDemoUser(state.user!.id) ? (
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isSaving ? (
+              <div className="flex items-center">
+                <ButtonSpinner />
+                <span className="ml-2">Saving...</span>
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </div>
+            )}
+          </button>
+        ) : (
+          <div className="text-sm text-spark-gray-500 px-4 py-2">
+            Demo mode: Edit functionality is disabled
+          </div>
+        )}
       </div>
 
       {/* Error/Success Messages */}
@@ -366,6 +376,7 @@ const CurriculumEditPage: React.FC = () => {
                   index={index}
                   onStatusChange={handleStatusChange}
                   onDelete={handleDeleteTopic}
+                  isDemoUser={isDemoUser(state.user!.id)}
                 />
               ))}
             </SortableContext>

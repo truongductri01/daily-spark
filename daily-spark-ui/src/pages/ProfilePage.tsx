@@ -59,6 +59,12 @@ const ProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent submission while user count is loading (for new user creation)
+    if (!isEditing && (state.userCountLoading.isLoading || state.userCount === null)) {
+      showError('Validation Error', 'Please wait for user count to load before creating account');
+      return;
+    }
+    
     if (!formData.displayName.trim() || !formData.email.trim() || !formData.userId.trim()) {
       showError('Validation Error', 'Please fill in all fields');
       return;
@@ -103,8 +109,10 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Check if user limit is reached (only for new user creation)
+  // Check if user limit is reached or if user count is still loading (only for new user creation)
   const isLimitReached = !isEditing && state.userCount !== null && isUserLimitReached(state.userCount);
+  const isUserCountLoading = !isEditing && state.userCountLoading.isLoading;
+  const shouldShowForm = isEditing || (!isLimitReached && !isUserCountLoading && state.userCount !== null);
 
   return (
     <div className="min-h-screen bg-spark-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -176,24 +184,58 @@ const ProfilePage: React.FC = () => {
         )}
 
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {/* Show form only if not at limit or if editing */}
-          {isLimitReached ? (
+          {/* Show form only if not at limit, not loading, and not editing */}
+          {!shouldShowForm ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-lg font-medium text-spark-gray-900 mb-2">
-                Sign Up Currently Unavailable
-              </h3>
-              <p className="text-spark-gray-600 mb-6">
-                We've reached our user limit. Please try again later or use the demo account to explore Daily Spark.
-              </p>
-              <button
-                onClick={() => navigate('/login')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-              >
-                Back to Login
-              </button>
+              {isUserCountLoading ? (
+                <>
+                  <div className="w-16 h-16 bg-spark-light-blue rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ButtonSpinner size="md" />
+                  </div>
+                  <h3 className="text-lg font-medium text-spark-gray-900 mb-2">
+                    Loading User Count
+                  </h3>
+                  <p className="text-spark-gray-600 mb-6">
+                    Please wait while we check the current user count...
+                  </p>
+                </>
+              ) : isLimitReached ? (
+                <>
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-spark-gray-900 mb-2">
+                    Sign Up Currently Unavailable
+                  </h3>
+                  <p className="text-spark-gray-600 mb-6">
+                    We've reached our user limit. Please try again later or use the demo account to explore Daily Spark.
+                  </p>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                  >
+                    Back to Login
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 bg-spark-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-spark-gray-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-spark-gray-900 mb-2">
+                    Unable to Load User Count
+                  </h3>
+                  <p className="text-spark-gray-600 mb-6">
+                    We're unable to verify the current user count. Please try again later.
+                  </p>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                  >
+                    Back to Login
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -280,7 +322,7 @@ const ProfilePage: React.FC = () => {
                 <div>
                   <button
                     type="submit"
-                    disabled={state.operationLoading.isLoading}
+                    disabled={state.operationLoading.isLoading || (!isEditing && (state.userCountLoading.isLoading || state.userCount === null))}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {state.operationLoading.isLoading ? (
