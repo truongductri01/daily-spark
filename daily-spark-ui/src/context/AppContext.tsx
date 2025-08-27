@@ -32,7 +32,7 @@ type AppAction =
   | { type: 'DELETE_CURRICULUM'; payload: string }
   | { type: 'SET_USER_COUNT'; payload: number }
   | { type: 'SET_USER_LOADING'; payload: LoadingState }
-  | { type: 'SET_CURRICULA_LOADING'; payload: LoadingState }
+  | { type: 'SET_CURRICULUM_LOADING'; payload: LoadingState }
   | { type: 'SET_OPERATION_LOADING'; payload: LoadingState }
   | { type: 'SET_USER_COUNT_LOADING'; payload: LoadingState }
   | { type: 'SET_INITIALIZED'; payload: boolean }
@@ -50,17 +50,77 @@ const initialState: AppState = {
   isInitialized: false,
 };
 
-// Local storage keys
+// Storage keys
 const STORAGE_KEYS = {
-  USER: 'daily-spark-user',
-  CURRICULA: 'daily-spark-curricula',
+  // Session storage (cleared on logout/browser close)
+  SESSION: 'daily-spark-session',
+  
+  // Encrypted localStorage
+  ENCRYPTED_USER: 'daily-spark-user-encrypted',
+  ENCRYPTED_CURRICULA: 'daily-spark-curricula-encrypted',
 };
 
-// Helper functions for localStorage
+// Simple encryption/decryption (in production, use a proper crypto library)
+const ENCRYPTION_KEY = process.env.REACT_APP_STORAGE_KEY || 'daily-spark-fallback-key-2024';
+
+const encryptData = (data: any): string => {
+  try {
+    const jsonString = JSON.stringify(data);
+    // Simple XOR encryption with the key (in production, use proper crypto library)
+    const encrypted = jsonString.split('').map((char, index) => {
+      const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
+      return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
+    }).join('');
+    return btoa(encrypted); // Base64 encode the XOR result
+  } catch (error) {
+    console.warn('Encryption failed:', error);
+    return '';
+  }
+};
+
+const decryptData = (encryptedData: string): any => {
+  try {
+    // Base64 decode first, then XOR decrypt
+    const decoded = atob(encryptedData);
+    const decrypted = decoded.split('').map((char, index) => {
+      const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
+      return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
+    }).join('');
+    return JSON.parse(decrypted);
+  } catch (error) {
+    console.warn('Decryption failed:', error);
+    return null;
+  }
+};
+
+// Session storage helpers (minimal data)
+const getSessionData = (): { userId: string; token: string; timestamp: number } | null => {
+  try {
+    const session = sessionStorage.getItem(STORAGE_KEYS.SESSION);
+    return session ? JSON.parse(session) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setSessionData = (userId: string, token: string) => {
+  const sessionData = {
+    userId,
+    token,
+    timestamp: Date.now()
+  };
+  sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessionData));
+};
+
+const clearSessionData = () => {
+  sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+};
+
+// Encrypted storage helpers (sensitive data)
 const getStoredUser = (): User | null => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.USER);
-    return stored ? JSON.parse(stored) : null;
+    const encrypted = localStorage.getItem(STORAGE_KEYS.ENCRYPTED_USER);
+    return encrypted ? decryptData(encrypted) : null;
   } catch {
     return null;
   }
@@ -68,23 +128,30 @@ const getStoredUser = (): User | null => {
 
 const setStoredUser = (user: User | null) => {
   if (user) {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    const encrypted = encryptData(user);
+    localStorage.setItem(STORAGE_KEYS.ENCRYPTED_USER, encrypted);
   } else {
-    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.ENCRYPTED_USER);
   }
 };
 
 const getStoredCurricula = (): Curriculum[] => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.CURRICULA);
-    return stored ? JSON.parse(stored) : [];
+    const encrypted = localStorage.getItem(STORAGE_KEYS.ENCRYPTED_CURRICULA);
+    return encrypted ? decryptData(encrypted) : [];
   } catch {
     return [];
   }
 };
 
 const setStoredCurricula = (curricula: Curriculum[]) => {
-  localStorage.setItem(STORAGE_KEYS.CURRICULA, JSON.stringify(curricula));
+  const encrypted = encryptData(curricula);
+  localStorage.setItem(STORAGE_KEYS.ENCRYPTED_CURRICULA, encrypted);
+};
+
+const clearEncryptedData = () => {
+  localStorage.removeItem(STORAGE_KEYS.ENCRYPTED_USER);
+  localStorage.removeItem(STORAGE_KEYS.ENCRYPTED_CURRICULA);
 };
 
 // Reducer function
@@ -148,7 +215,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_USER_COUNT_LOADING':
       return { ...state, userCountLoading: action.payload };
     
-    case 'SET_CURRICULA_LOADING':
+    case 'SET_CURRICULUM_LOADING':
       return { ...state, curriculaLoading: action.payload };
     
     case 'SET_OPERATION_LOADING':
@@ -158,8 +225,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isInitialized: action.payload };
     
     case 'LOGOUT':
-      setStoredUser(null);
-      setStoredCurricula([]);
+      clearSessionData();
+      clearEncryptedData();
       return { ...initialState, isInitialized: true };
     
     default:
@@ -206,23 +273,29 @@ export function AppProvider({ children }: AppProviderProps) {
 
   // Initialize authentication on app start
   const initializeAuth = useCallback(async () => {
+    const sessionData = getSessionData();
     const storedUser = getStoredUser();
-    if (storedUser) {
+    
+    if (sessionData && storedUser) {
       // Verify the stored user is still valid
       try {
         const response = await apiService.getUser(storedUser.id);
         if (response.success) {
           dispatch({ type: 'SET_USER', payload: response.data });
         } else {
-          // Stored user is invalid, clear it
-          setStoredUser(null);
-          setStoredCurricula([]);
+          // Stored user is invalid, clear everything
+          clearSessionData();
+          clearEncryptedData();
         }
       } catch (error) {
         // Network error, keep stored user but mark as initialized
         console.warn('Failed to verify stored user:', error);
       }
+    } else if (sessionData && !storedUser) {
+      // Session exists but no user data, clear session
+      clearSessionData();
     }
+    
     dispatch({ type: 'SET_INITIALIZED', payload: true });
   }, []);
 
@@ -234,7 +307,7 @@ export function AppProvider({ children }: AppProviderProps) {
   // Clear all errors
   const clearErrors = useCallback(() => {
     dispatch({ type: 'SET_USER_LOADING', payload: { isLoading: false, error: null } });
-    dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: false, error: null } });
+    dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: false, error: null } });
     dispatch({ type: 'SET_OPERATION_LOADING', payload: { isLoading: false, error: null } });
   }, []);
 
@@ -246,6 +319,8 @@ export function AppProvider({ children }: AppProviderProps) {
       const response = await apiService.getUser(userId);
       
       if (response.success) {
+        // Store session data and user data
+        setSessionData(userId, 'session-token'); // In production, use real JWT token
         dispatch({ type: 'SET_USER', payload: response.data });
       } else {
         const error: ApiError = {
@@ -276,6 +351,8 @@ export function AppProvider({ children }: AppProviderProps) {
       const response = await apiService.createUser(userData);
       
       if (response.success) {
+        // Store session data and user data
+        setSessionData(userData.id || response.data.id, 'session-token'); // In production, use real JWT token
         dispatch({ type: 'SET_USER', payload: response.data });
       } else {
         const error: ApiError = {
@@ -353,7 +430,7 @@ export function AppProvider({ children }: AppProviderProps) {
       return;
     }
 
-    dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: true, error: null } });
+    dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: true, error: null } });
     
     try {
       const response = await apiService.getCurriculaByUserId(userId);
@@ -366,7 +443,7 @@ export function AppProvider({ children }: AppProviderProps) {
           statusCode: 400,
           details: response
         };
-        dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: false, error } });
+        dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: false, error } });
       }
     } catch (error) {
       const apiError: ApiError = {
@@ -374,7 +451,7 @@ export function AppProvider({ children }: AppProviderProps) {
         statusCode: 500,
         details: error
       };
-      dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: false, error: apiError } });
+      dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: false, error: apiError } });
     }
   }, [state.curricula.length, state.curriculaLoading.isLoading]);
 
