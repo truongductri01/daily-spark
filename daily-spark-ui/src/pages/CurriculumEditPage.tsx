@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
-import { ButtonSpinner, LoadingSpinner } from '../components/LoadingSpinner';
-import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ButtonSpinner } from '../components/LoadingSpinner';
+import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
 import { isDemoUser } from '../utils/config';
 import {
@@ -165,11 +165,12 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
 const CurriculumEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, updateCurriculum } = useAppContext();
+  const { state, updateCurriculum, loadCurricula } = useAppContext();
   const { showSuccess, showError } = useToastHelpers();
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -192,6 +193,21 @@ const CurriculumEditPage: React.FC = () => {
       }
     }
   }, [id, state.curricula]);
+
+  const handleRefresh = async () => {
+    if (!state.user) return;
+    
+    setIsRefreshing(true);
+    try {
+      await loadCurricula(state.user.id, true); // Force refresh
+      showSuccess('Refreshed', 'Curriculum data has been refreshed successfully.');
+    } catch (error) {
+      console.error('Failed to refresh curriculum:', error);
+      showError('Refresh Failed', 'Failed to refresh data. Please try again.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -260,8 +276,41 @@ const CurriculumEditPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner size="lg" text="Loading curriculum..." />
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div>
+              <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+
+        {/* Topics Skeleton */}
+        <div className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-48 h-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-1/2 h-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -302,29 +351,39 @@ const CurriculumEditPage: React.FC = () => {
             </p>
           </div>
         </div>
-        {!isDemoUser(state.user!.id) ? (
+        <div className="flex items-center space-x-3">
           <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center px-4 py-2 border border-spark-gray-300 text-sm font-medium rounded-md text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? (
-              <div className="flex items-center">
-                <ButtonSpinner />
-                <span className="ml-2">Saving...</span>
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </div>
-            )}
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </button>
-        ) : (
-          <div className="text-sm text-spark-gray-500 px-4 py-2">
-            Demo mode: Edit functionality is disabled
-          </div>
-        )}
+          {!isDemoUser(state.user!.id) ? (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? (
+                <div className="flex items-center">
+                  <ButtonSpinner />
+                  <span className="ml-2">Saving...</span>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </div>
+              )}
+            </button>
+          ) : (
+            <div className="text-sm text-spark-gray-500 px-4 py-2">
+              Demo mode: Edit functionality is disabled
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Error/Success Messages */}
