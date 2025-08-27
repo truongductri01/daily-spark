@@ -76,7 +76,7 @@ const CurriculumUploadPage: React.FC = () => {
       ? input.topics.map((t: any) => ({
           title: typeof t?.title === 'string' ? t.title : '',
           description: typeof t?.description === 'string' ? t.description : '',
-          estimatedTime: typeof t?.estimatedTime === 'string' ? t.estimatedTime : '',
+          estimatedTime: typeof t?.estimatedTime === 'string' || typeof t?.estimatedTime === 'number' ? t.estimatedTime : '',
           question: typeof t?.question === 'string' ? t.question : '',
           resources: Array.isArray(t?.resources) ? t.resources : [],
           status: 'NotStarted' as const,
@@ -194,13 +194,27 @@ const CurriculumUploadPage: React.FC = () => {
         return null;
       }
 
-      if (!topic.estimatedTime || topic.estimatedTime === null || topic.estimatedTime === undefined) {
+      // Check if estimatedTime exists and is not null/undefined
+      if (topic.estimatedTime === null || topic.estimatedTime === undefined) {
         setError(`Topic ${i + 1} is missing required field: estimatedTime`);
         return null;
       }
 
-      if (typeof topic.estimatedTime !== 'string' || topic.estimatedTime.trim() === '') {
+      // Accept both string and number for estimatedTime
+      if (typeof topic.estimatedTime !== 'string' && typeof topic.estimatedTime !== 'number') {
+        setError(`Topic ${i + 1} estimatedTime must be a string or number`);
+        return null;
+      }
+
+      // For strings, check they're not empty
+      if (typeof topic.estimatedTime === 'string' && topic.estimatedTime.trim() === '') {
         setError(`Topic ${i + 1} estimatedTime must be a non-empty string`);
+        return null;
+      }
+
+      // For numbers, check they're not negative (optional validation)
+      if (typeof topic.estimatedTime === 'number' && topic.estimatedTime < 0) {
+        setError(`Topic ${i + 1} estimatedTime must be a non-negative number`);
         return null;
       }
 
