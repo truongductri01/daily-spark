@@ -309,7 +309,7 @@ const CurriculumUploadPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="curriculum-upload-page space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-6">
