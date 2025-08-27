@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="dashboard-page space-y-8">
       {/* Welcome Header with Refresh Button */}
       <div className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
         <div className="flex items-center justify-between">

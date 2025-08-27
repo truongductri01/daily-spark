@@ -115,7 +115,7 @@ const ProfilePage: React.FC = () => {
   const shouldShowForm = isEditing || (!isLimitReached && !isUserCountLoading && state.userCount !== null);
 
   return (
-    <div className="min-h-screen bg-spark-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="profile-page min-h-screen bg-spark-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Back Button */}
         <button
