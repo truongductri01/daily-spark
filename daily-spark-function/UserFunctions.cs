@@ -58,6 +58,19 @@ public class CreateUser
             // Get Cosmos DB container
             Container usersContainer = UserFunctionHelpers.GetUsersContainer();
 
+            // Check user limit before creating new user
+            string maxUsersLimitStr = Environment.GetEnvironmentVariable("MAX_USERS_LIMIT") ?? "100";
+            if (!int.TryParse(maxUsersLimitStr, out int maxUsersLimit))
+            {
+                maxUsersLimit = 100; // Default fallback
+            }
+
+            int currentUserCount = await UserFunctionHelpers.GetUserCountAsync(usersContainer, _logger);
+            if (currentUserCount >= maxUsersLimit)
+            {
+                return new BadRequestObjectResult($"User limit reached. Maximum allowed users: {maxUsersLimit}. Current users: {currentUserCount}");
+            }
+
             // Check if user with provided ID already exists (if ID was provided)
             if (!string.IsNullOrEmpty(requestData.Id))
             {
@@ -83,7 +96,10 @@ public class CreateUser
             // Save to Cosmos DB
             await usersContainer.CreateItemAsync(user, new PartitionKey(userId));
 
-            _logger.LogInformation($"Successfully created user with ID: {userId}");
+            // Increment user counter
+            int newUserCount = await UserFunctionHelpers.IncrementUserCounterAsync(usersContainer, _logger);
+
+            _logger.LogInformation($"Successfully created user with ID: {userId}. Total users: {newUserCount}");
 
             return new OkObjectResult(new UserResponseModel
             {
@@ -238,6 +254,40 @@ public class UpdateUser
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user");
+            return new StatusCodeResult(500);
+        }
+    }
+}
+
+public class GetUserCount
+{
+    private readonly ILogger<GetUserCount> _logger;
+
+    public GetUserCount(ILogger<GetUserCount> logger)
+    {
+        _logger = logger;
+    }
+
+    [Function("GetUserCount")]
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function processed a get user count request.");
+
+        try
+        {
+            // Get Cosmos DB container
+            Container usersContainer = UserFunctionHelpers.GetUsersContainer();
+
+            // Get user count from counter document
+            int userCount = await UserFunctionHelpers.GetUserCountAsync(usersContainer, _logger);
+
+            _logger.LogInformation($"Successfully retrieved user count: {userCount}");
+
+            return new OkObjectResult(new { totalUsers = userCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user count");
             return new StatusCodeResult(500);
         }
     }
