@@ -11,6 +11,7 @@ export const ENDPOINTS = {
   CREATE_USER: '/CreateUser',
   GET_USER: '/GetUser',
   UPDATE_USER: '/UpdateUser',
+  GET_USER_COUNT: '/GetUserCount',
   
   // Curriculum Management Endpoints
   CREATE_CURRICULUM: '/CreateCurriculum',
@@ -45,6 +46,7 @@ export const ENDPOINT_METHODS: Record<EndpointName, 'GET' | 'POST' | 'PUT' | 'DE
   CREATE_USER: 'POST',
   GET_USER: 'GET',
   UPDATE_USER: 'PUT',
+  GET_USER_COUNT: 'GET',
   
   // Curriculum endpoints
   CREATE_CURRICULUM: 'POST',
@@ -69,6 +71,7 @@ export const ENDPOINT_QUERY_PARAMS: Record<EndpointName, string[]> = {
   CREATE_USER: [],
   GET_USER: ['userId'],
   UPDATE_USER: [],
+  GET_USER_COUNT: [],
   
   // Curriculum endpoints
   CREATE_CURRICULUM: [],

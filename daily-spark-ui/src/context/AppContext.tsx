@@ -15,9 +15,11 @@ import { apiService } from '../services';
 interface AppState {
   user: User | null;
   curricula: Curriculum[];
+  userCount: number | null;
   userLoading: LoadingState;
   curriculaLoading: LoadingState;
   operationLoading: LoadingState;
+  userCountLoading: LoadingState;
 }
 
 // Enhanced action types
@@ -27,18 +29,22 @@ type AppAction =
   | { type: 'ADD_CURRICULUM'; payload: Curriculum }
   | { type: 'UPDATE_CURRICULUM'; payload: Curriculum }
   | { type: 'DELETE_CURRICULUM'; payload: string }
+  | { type: 'SET_USER_COUNT'; payload: number }
   | { type: 'SET_USER_LOADING'; payload: LoadingState }
   | { type: 'SET_CURRICULA_LOADING'; payload: LoadingState }
   | { type: 'SET_OPERATION_LOADING'; payload: LoadingState }
+  | { type: 'SET_USER_COUNT_LOADING'; payload: LoadingState }
   | { type: 'LOGOUT' };
 
 // Initial state
 const initialState: AppState = {
   user: null,
   curricula: [],
+  userCount: null,
   userLoading: { isLoading: false, error: null },
   curriculaLoading: { isLoading: false, error: null },
   operationLoading: { isLoading: false, error: null },
+  userCountLoading: { isLoading: false, error: null },
 };
 
 // Reducer function
@@ -81,8 +87,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
         operationLoading: { isLoading: false, error: null }
       };
     
+    case 'SET_USER_COUNT':
+      return { 
+        ...state, 
+        userCount: action.payload,
+        userCountLoading: { isLoading: false, error: null }
+      };
+    
     case 'SET_USER_LOADING':
       return { ...state, userLoading: action.payload };
+    
+    case 'SET_USER_COUNT_LOADING':
+      return { ...state, userCountLoading: action.payload };
     
     case 'SET_CURRICULA_LOADING':
       return { ...state, curriculaLoading: action.payload };
@@ -107,6 +123,7 @@ interface AppContextType {
   logout: () => void;
   createUser: (userData: CreateUserRequest) => Promise<void>;
   updateUser: (userData: UpdateUserRequest) => Promise<void>;
+  getUserCount: () => Promise<void>;
   
   // Curriculum operations
   loadCurricula: (userId: string) => Promise<void>;
@@ -216,6 +233,32 @@ export function AppProvider({ children }: AppProviderProps) {
         details: error
       };
       dispatch({ type: 'SET_OPERATION_LOADING', payload: { isLoading: false, error: apiError } });
+    }
+  }, []);
+
+  const getUserCount = useCallback(async () => {
+    dispatch({ type: 'SET_USER_COUNT_LOADING', payload: { isLoading: true, error: null } });
+    
+    try {
+      const response = await apiService.getUserCount();
+      
+      if (response.success) {
+        dispatch({ type: 'SET_USER_COUNT', payload: response.data.totalUsers });
+      } else {
+        const error: ApiError = {
+          message: response.message || 'Failed to get user count',
+          statusCode: 400,
+          details: response
+        };
+        dispatch({ type: 'SET_USER_COUNT_LOADING', payload: { isLoading: false, error } });
+      }
+    } catch (error) {
+      const apiError: ApiError = {
+        message: error instanceof Error ? error.message : 'Network error occurred',
+        statusCode: 500,
+        details: error
+      };
+      dispatch({ type: 'SET_USER_COUNT_LOADING', payload: { isLoading: false, error: apiError } });
     }
   }, []);
 
@@ -330,6 +373,7 @@ export function AppProvider({ children }: AppProviderProps) {
     logout,
     createUser,
     updateUser,
+    getUserCount,
     loadCurricula,
     createCurriculum,
     updateCurriculum,
