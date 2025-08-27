@@ -285,29 +285,47 @@ const ProfilePage: React.FC = () => {
                   <label htmlFor="userId" className="block text-sm font-medium text-spark-gray-700">
                     User ID
                   </label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <input
-                      id="userId"
-                      name="userId"
-                      type="text"
-                      required
-                      value={formData.userId}
-                      onChange={handleInputChange}
-                      className="flex-1 appearance-none block w-full px-3 py-2 border border-r-0 border-spark-gray-300 rounded-l-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
-                      placeholder="Enter or generate a User ID"
-                      disabled={state.operationLoading.isLoading}
-                    />
-                    <button
-                      type="button"
-                      onClick={generateUserId}
-                      disabled={state.operationLoading.isLoading}
-                      className="inline-flex items-center px-3 py-2 border border-l-0 border-spark-gray-300 rounded-r-md bg-spark-gray-50 text-sm font-medium text-spark-gray-700 hover:bg-spark-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Generate
-                    </button>
+                  <div className="mt-1">
+                    {isEditing ? (
+                      /* Readonly field for existing users */
+                      <input
+                        id="userId"
+                        name="userId"
+                        type="text"
+                        value={formData.userId}
+                        className="appearance-none block w-full px-3 py-2 border border-spark-gray-300 rounded-md bg-spark-gray-100 text-spark-gray-500 sm:text-sm cursor-not-allowed"
+                        readOnly
+                      />
+                    ) : (
+                      /* Editable field with Generate button for new users */
+                      <div className="flex rounded-md shadow-sm">
+                        <input
+                          id="userId"
+                          name="userId"
+                          type="text"
+                          required
+                          value={formData.userId}
+                          onChange={handleInputChange}
+                          className="flex-1 appearance-none block w-full px-3 py-2 border border-r-0 border-spark-gray-300 rounded-l-md placeholder-spark-gray-400 focus:outline-none focus:ring-spark-blue-500 focus:border-spark-blue-500 sm:text-sm"
+                          placeholder="Enter or generate a User ID"
+                          disabled={state.operationLoading.isLoading}
+                        />
+                        <button
+                          type="button"
+                          onClick={generateUserId}
+                          disabled={state.operationLoading.isLoading}
+                          className="inline-flex items-center px-3 py-2 border border-l-0 border-spark-gray-300 rounded-r-md bg-spark-gray-50 text-sm font-medium text-spark-gray-700 hover:bg-spark-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Generate
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-spark-gray-500">
-                    This will be your unique identifier for signing in
+                    {isEditing 
+                      ? 'User ID cannot be changed once created'
+                      : 'This will be your unique identifier for signing in'
+                    }
                   </p>
                 </div>
 

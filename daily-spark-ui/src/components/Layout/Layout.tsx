@@ -83,9 +83,12 @@ const Layout: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-spark-gray-500" />
-                  <span className="text-sm font-medium text-spark-gray-700">
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="text-sm font-medium text-spark-gray-700 hover:text-spark-blue-600 hover:underline transition-colors"
+                  >
                     {state.user.displayName}
-                  </span>
+                  </button>
                 </div>
                 
                 {/* Logout Button */}
