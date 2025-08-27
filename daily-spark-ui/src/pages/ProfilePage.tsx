@@ -120,7 +120,7 @@ const ProfilePage: React.FC = () => {
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-spark-gray-600 hover:text-spark-blue-600 transition-colors mb-4"
+          className="flex items-center px-4 py-2 text-spark-gray-700 hover:text-spark-blue-600 hover:bg-spark-blue-50 border border-spark-gray-300 hover:border-spark-blue-300 rounded-lg transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back

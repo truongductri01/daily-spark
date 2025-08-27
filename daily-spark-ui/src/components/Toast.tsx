@@ -112,7 +112,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
   };
 
   const getToastStyles = (type: ToastType) => {
-    const baseStyles = "transform transition-all duration-300 ease-in-out max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden";
+    const baseStyles = "transform transition-all duration-300 ease-in-out w-auto max-w-md bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden";
     
     switch (type) {
       case 'success':
@@ -163,15 +163,15 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
-      <div className="p-4">
+      <div className="p-6">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             {getIcon(toast.type)}
           </div>
-          <div className="ml-3 w-0 flex-1 pt-0.5">
+          <div className="ml-4 flex-1 pt-0.5">
             <p className="text-sm font-medium text-gray-900">{toast.title}</p>
             {toast.message && (
-              <p className="mt-1 text-sm text-gray-500">{toast.message}</p>
+              <p className="mt-2 text-sm text-gray-500">{toast.message}</p>
             )}
           </div>
           <div className="ml-4 flex flex-shrink-0">
