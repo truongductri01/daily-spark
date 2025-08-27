@@ -61,37 +61,47 @@ const STORAGE_KEYS = {
 };
 
 // Simple encryption/decryption (in production, use a proper crypto library)
-const ENCRYPTION_KEY = process.env.REACT_APP_STORAGE_KEY || 'daily-spark-fallback-key-2024';
+const ENCRYPTION_KEY = process.env.REACT_APP_STORAGE_KEY;
 
-const encryptData = (data: any): string => {
-  try {
-    const jsonString = JSON.stringify(data);
-    // Simple XOR encryption with the key (in production, use proper crypto library)
-    const encrypted = jsonString.split('').map((char, index) => {
-      const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
-      return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
-    }).join('');
-    return btoa(encrypted); // Base64 encode the XOR result
-  } catch (error) {
-    console.warn('Encryption failed:', error);
-    return '';
-  }
-};
+  const encryptData = (data: any): string => {
+    try {
+      if (!ENCRYPTION_KEY) {
+        console.warn('No encryption key available - data will not be encrypted');
+        return '';
+      }
+      
+      const jsonString = JSON.stringify(data);
+      // Simple XOR encryption with the key (in production, use proper crypto library)
+      const encrypted = jsonString.split('').map((char, index) => {
+        const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
+        return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
+      }).join('');
+      return btoa(encrypted); // Base64 encode the XOR result
+    } catch (error) {
+      console.warn('Encryption failed:', error);
+      return '';
+    }
+  };
 
-const decryptData = (encryptedData: string): any => {
-  try {
-    // Base64 decode first, then XOR decrypt
-    const decoded = atob(encryptedData);
-    const decrypted = decoded.split('').map((char, index) => {
-      const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
-      return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
-    }).join('');
-    return JSON.parse(decrypted);
-  } catch (error) {
-    console.warn('Decryption failed:', error);
-    return null;
-  }
-};
+  const decryptData = (encryptedData: string): any => {
+    try {
+      if (!ENCRYPTION_KEY) {
+        console.warn('No encryption key available - cannot decrypt data');
+        return null;
+      }
+      
+      // Base64 decode first, then XOR decrypt
+      const decoded = atob(encryptedData);
+      const decrypted = decoded.split('').map((char, index) => {
+        const keyChar = ENCRYPTION_KEY[index % ENCRYPTION_KEY.length];
+        return String.fromCharCode(char.charCodeAt(0) ^ keyChar.charCodeAt(0));
+      }).join('');
+      return JSON.parse(decrypted);
+    } catch (error) {
+      console.warn('Decryption failed:', error);
+      return null;
+    }
+  };
 
 // Session storage helpers (minimal data)
 const getSessionData = (): { userId: string; token: string; timestamp: number } | null => {
@@ -129,7 +139,12 @@ const getStoredUser = (): User | null => {
 const setStoredUser = (user: User | null) => {
   if (user) {
     const encrypted = encryptData(user);
-    localStorage.setItem(STORAGE_KEYS.ENCRYPTED_USER, encrypted);
+    if (encrypted) {
+      localStorage.setItem(STORAGE_KEYS.ENCRYPTED_USER, encrypted);
+    } else {
+      // If encryption fails, don't store sensitive data
+      console.warn('Failed to encrypt user data - not storing in localStorage');
+    }
   } else {
     localStorage.removeItem(STORAGE_KEYS.ENCRYPTED_USER);
   }
@@ -146,7 +161,12 @@ const getStoredCurricula = (): Curriculum[] => {
 
 const setStoredCurricula = (curricula: Curriculum[]) => {
   const encrypted = encryptData(curricula);
-  localStorage.setItem(STORAGE_KEYS.ENCRYPTED_CURRICULA, encrypted);
+  if (encrypted) {
+    localStorage.setItem(STORAGE_KEYS.ENCRYPTED_CURRICULA, encrypted);
+  } else {
+    // If encryption fails, don't store sensitive data
+    console.warn('Failed to encrypt curricula data - not storing in localStorage');
+  }
 };
 
 const clearEncryptedData = () => {
