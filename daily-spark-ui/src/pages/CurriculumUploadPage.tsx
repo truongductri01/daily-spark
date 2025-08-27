@@ -312,10 +312,10 @@ const CurriculumUploadPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center text-spark-gray-600 hover:text-spark-blue-600 transition-colors"
+            className="flex items-center px-4 py-2 text-spark-gray-700 hover:text-spark-blue-600 hover:bg-spark-blue-50 border border-spark-gray-300 hover:border-spark-blue-300 rounded-lg transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
