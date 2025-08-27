@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useCallback, useEffect } from 'react';
 import { 
   User, 
   Curriculum, 
@@ -20,6 +20,7 @@ interface AppState {
   curriculaLoading: LoadingState;
   operationLoading: LoadingState;
   userCountLoading: LoadingState;
+  isInitialized: boolean; // Track if initial auth check is complete
 }
 
 // Enhanced action types
@@ -34,6 +35,7 @@ type AppAction =
   | { type: 'SET_CURRICULA_LOADING'; payload: LoadingState }
   | { type: 'SET_OPERATION_LOADING'; payload: LoadingState }
   | { type: 'SET_USER_COUNT_LOADING'; payload: LoadingState }
+  | { type: 'SET_INITIALIZED'; payload: boolean }
   | { type: 'LOGOUT' };
 
 // Initial state
@@ -45,12 +47,51 @@ const initialState: AppState = {
   curriculaLoading: { isLoading: false, error: null },
   operationLoading: { isLoading: false, error: null },
   userCountLoading: { isLoading: false, error: null },
+  isInitialized: false,
+};
+
+// Local storage keys
+const STORAGE_KEYS = {
+  USER: 'daily-spark-user',
+  CURRICULA: 'daily-spark-curricula',
+};
+
+// Helper functions for localStorage
+const getStoredUser = (): User | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.USER);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setStoredUser = (user: User | null) => {
+  if (user) {
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(STORAGE_KEYS.USER);
+  }
+};
+
+const getStoredCurricula = (): Curriculum[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.CURRICULA);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const setStoredCurricula = (curricula: Curriculum[]) => {
+  localStorage.setItem(STORAGE_KEYS.CURRICULA, JSON.stringify(curricula));
 };
 
 // Reducer function
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_USER':
+      setStoredUser(action.payload);
       return { 
         ...state, 
         user: action.payload, 
@@ -58,6 +99,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     
     case 'SET_CURRICULA':
+      setStoredCurricula(action.payload);
       return { 
         ...state, 
         curricula: action.payload, 
@@ -65,25 +107,31 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     
     case 'ADD_CURRICULUM':
+      const newCurricula = [...state.curricula, action.payload];
+      setStoredCurricula(newCurricula);
       return { 
         ...state, 
-        curricula: [...state.curricula, action.payload], 
+        curricula: newCurricula, 
         operationLoading: { isLoading: false, error: null } 
       };
     
     case 'UPDATE_CURRICULUM':
+      const updatedCurricula = state.curricula.map(c => 
+        c.id === action.payload.id ? action.payload : c
+      );
+      setStoredCurricula(updatedCurricula);
       return {
         ...state,
-        curricula: state.curricula.map(c => 
-          c.id === action.payload.id ? action.payload : c
-        ),
+        curricula: updatedCurricula,
         operationLoading: { isLoading: false, error: null }
       };
     
     case 'DELETE_CURRICULUM':
+      const filteredCurricula = state.curricula.filter(c => c.id !== action.payload);
+      setStoredCurricula(filteredCurricula);
       return {
         ...state,
-        curricula: state.curricula.filter(c => c.id !== action.payload),
+        curricula: filteredCurricula,
         operationLoading: { isLoading: false, error: null }
       };
     
@@ -106,8 +154,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_OPERATION_LOADING':
       return { ...state, operationLoading: action.payload };
     
+    case 'SET_INITIALIZED':
+      return { ...state, isInitialized: action.payload };
+    
     case 'LOGOUT':
-      return { ...initialState };
+      setStoredUser(null);
+      setStoredCurricula([]);
+      return { ...initialState, isInitialized: true };
     
     default:
       return state;
@@ -126,13 +179,14 @@ interface AppContextType {
   getUserCount: () => Promise<void>;
   
   // Curriculum operations
-  loadCurricula: (userId: string) => Promise<void>;
+  loadCurricula: (userId: string, forceRefresh?: boolean) => Promise<void>;
   createCurriculum: (curriculumData: CreateCurriculumRequest) => Promise<void>;
   updateCurriculum: (curriculumData: UpdateCurriculumRequest) => Promise<void>;
   deleteCurriculum: (curriculumId: string, userId: string) => Promise<void>;
   
   // Utility functions
   clearErrors: () => void;
+  initializeAuth: () => Promise<void>;
 }
 
 // Create context
@@ -144,7 +198,38 @@ interface AppProviderProps {
 }
 
 export function AppProvider({ children }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [state, dispatch] = useReducer(appReducer, {
+    ...initialState,
+    user: getStoredUser(),
+    curricula: getStoredCurricula(),
+  });
+
+  // Initialize authentication on app start
+  const initializeAuth = useCallback(async () => {
+    const storedUser = getStoredUser();
+    if (storedUser) {
+      // Verify the stored user is still valid
+      try {
+        const response = await apiService.getUser(storedUser.id);
+        if (response.success) {
+          dispatch({ type: 'SET_USER', payload: response.data });
+        } else {
+          // Stored user is invalid, clear it
+          setStoredUser(null);
+          setStoredCurricula([]);
+        }
+      } catch (error) {
+        // Network error, keep stored user but mark as initialized
+        console.warn('Failed to verify stored user:', error);
+      }
+    }
+    dispatch({ type: 'SET_INITIALIZED', payload: true });
+  }, []);
+
+  // Initialize auth on mount
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   // Clear all errors
   const clearErrors = useCallback(() => {
@@ -262,8 +347,12 @@ export function AppProvider({ children }: AppProviderProps) {
     }
   }, []);
 
-  // Curriculum operations
-  const loadCurricula = useCallback(async (userId: string) => {
+  const loadCurricula = useCallback(async (userId: string, forceRefresh = false) => {
+    // Don't load if we already have data and not forcing refresh
+    if (!forceRefresh && state.curricula.length > 0 && !state.curriculaLoading.isLoading) {
+      return;
+    }
+
     dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: true, error: null } });
     
     try {
@@ -287,7 +376,7 @@ export function AppProvider({ children }: AppProviderProps) {
       };
       dispatch({ type: 'SET_CURRICULA_LOADING', payload: { isLoading: false, error: apiError } });
     }
-  }, []);
+  }, [state.curricula.length, state.curriculaLoading.isLoading]);
 
   const createCurriculum = useCallback(async (curriculumData: CreateCurriculumRequest) => {
     dispatch({ type: 'SET_OPERATION_LOADING', payload: { isLoading: true, error: null } });
@@ -379,6 +468,7 @@ export function AppProvider({ children }: AppProviderProps) {
     updateCurriculum,
     deleteCurriculum,
     clearErrors,
+    initializeAuth,
   };
 
   return (
@@ -391,7 +481,7 @@ export function AppProvider({ children }: AppProviderProps) {
 // Custom hook to use the context
 export function useAppContext() {
   const context = useContext(AppContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
   return context;

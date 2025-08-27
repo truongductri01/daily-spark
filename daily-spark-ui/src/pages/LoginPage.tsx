@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
-import { ButtonSpinner } from '../components/LoadingSpinner';
+import { ButtonSpinner, LoadingSpinner } from '../components/LoadingSpinner';
 import { BookOpen, Sparkles } from 'lucide-react';
+import { config } from '../utils/config';
 
 const LoginPage: React.FC = () => {
   const [userId, setUserId] = useState('');
@@ -44,6 +45,19 @@ const LoginPage: React.FC = () => {
     navigate('/profile');
   };
 
+  const handleUseDemoAccount = () => {
+    setUserId(config.DEMO_USER_ID);
+  };
+
+  // Show loading while checking authentication
+  if (!state.isInitialized) {
+    return (
+      <div className="min-h-screen bg-spark-gray-100 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-spark-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -57,13 +71,14 @@ const LoginPage: React.FC = () => {
           Welcome to Daily Spark
         </h2>
         <p className="mt-2 text-center text-sm text-spark-gray-600">
-          Your Partner in Daily Learning
+          Your partner in daily learning
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* User ID Input */}
             <div>
               <label htmlFor="userId" className="block text-sm font-medium text-spark-gray-700">
                 User ID
@@ -81,16 +96,12 @@ const LoginPage: React.FC = () => {
                   disabled={state.userLoading.isLoading}
                 />
               </div>
+              {state.userLoading.error && (
+                <p className="mt-2 text-sm text-red-600">{state.userLoading.error.message}</p>
+              )}
             </div>
 
-            {state.userLoading.error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="flex">
-                  <div className="text-sm text-red-700">{state.userLoading.error.message}</div>
-                </div>
-              </div>
-            )}
-
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
@@ -99,16 +110,20 @@ const LoginPage: React.FC = () => {
               >
                 {state.userLoading.isLoading ? (
                   <div className="flex items-center">
-                    <ButtonSpinner size="sm" />
+                    <ButtonSpinner />
                     <span className="ml-2">Signing in...</span>
                   </div>
                 ) : (
-                  'Sign In'
+                  <div className="flex items-center">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Sign In
+                  </div>
                 )}
               </button>
             </div>
           </form>
 
+          {/* Create Profile Link */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -124,16 +139,15 @@ const LoginPage: React.FC = () => {
                 onClick={handleCreateProfile}
                 className="w-full flex justify-center py-2 px-4 border border-spark-gray-300 rounded-md shadow-sm text-sm font-medium text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create New Profile
+                Create Profile
               </button>
             </div>
           </div>
 
-          {/* Demo Info */}
+          {/* Demo Account Info */}
           <div className="mt-6 p-4 bg-spark-light-blue rounded-md">
             <p className="text-sm text-spark-blue-600 text-center">
-              <strong>Demo Mode:</strong> Use <code className="bg-white px-1 rounded">first-user</code> to sign in
+              <strong>Demo Mode:</strong> Use <code className="bg-white px-1 rounded">{config.DEMO_USER_ID}</code> to sign in
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { CardSkeleton } from '../components/LoadingSpinner';
-import { BookOpen, Edit, Trash2, Plus, Calendar, Clock } from 'lucide-react';
+import { BookOpen, Edit, Trash2, Plus, Calendar, Clock, RefreshCw } from 'lucide-react';
 import { Curriculum } from '../types';
 import { isDemoUser } from '../utils/config';
 
@@ -11,25 +11,39 @@ const CurriculumListPage: React.FC = () => {
   const { state, loadCurricula, deleteCurriculum } = useAppContext();
   const { showSuccess, showError } = useToastHelpers();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // Load curricula only if not already loaded
   useEffect(() => {
     const loadData = async () => {
-      if (state.user) {
+      if (state.user && state.curricula.length === 0) {
         try {
           await loadCurricula(state.user.id);
         } catch (error) {
           console.error('Failed to load curricula:', error);
           showError('Loading Failed', 'Failed to load your curricula. Please try again.');
-        } finally {
-          setIsLoading(false);
         }
       }
     };
 
     loadData();
-  }, [state.user, loadCurricula, showError]);
+  }, [state.user, state.curricula.length, loadCurricula, showError]);
+
+  const handleRefresh = async () => {
+    if (!state.user) return;
+    
+    setIsRefreshing(true);
+    try {
+      await loadCurricula(state.user.id, true); // Force refresh
+      showSuccess('Refreshed', 'Curriculum list has been refreshed successfully.');
+    } catch (error) {
+      console.error('Failed to refresh curricula:', error);
+      showError('Refresh Failed', 'Failed to refresh data. Please try again.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleDelete = async (curriculumId: string) => {
     if (!state.user) return;
@@ -71,13 +85,12 @@ const CurriculumListPage: React.FC = () => {
     return Math.round((completed / total) * 100);
   };
 
-
-
   if (!state.user) {
     return null;
   }
 
-  if (isLoading) {
+  // Show loading only if we have no data and are loading
+  if (state.curriculaLoading.isLoading && state.curricula.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -109,15 +122,25 @@ const CurriculumListPage: React.FC = () => {
             Manage and track your learning curricula
           </p>
         </div>
-        {!isDemoUser(state.user.id) && (
+        <div className="flex items-center space-x-3">
           <button
-            onClick={() => navigate('/upload')}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center px-4 py-2 border border-spark-gray-300 text-sm font-medium rounded-md text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Create New
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </button>
-        )}
+          {!isDemoUser(state.user.id) && (
+            <button
+              onClick={() => navigate('/upload')}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create New
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Curricula Grid */}

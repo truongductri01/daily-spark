@@ -4,6 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { LogOut, User, BookOpen, Upload, Home } from 'lucide-react';
 import { isDemoUser } from '../../utils/config';
 import DemoBanner from '../DemoBanner';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 const Layout: React.FC = () => {
   const { state, logout } = useAppContext();
@@ -21,6 +22,15 @@ const Layout: React.FC = () => {
     { name: 'Upload New', href: '/upload', icon: Upload },
   ];
 
+  // Show loading while checking authentication
+  if (!state.isInitialized) {
+    return (
+      <div className="min-h-screen bg-spark-gray-100 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading..." />
+      </div>
+    );
+  }
+
   if (!state.user) {
     return <Navigate to="/login" />;
   }
@@ -31,91 +41,66 @@ const Layout: React.FC = () => {
       <header className="bg-white shadow-sm border-b border-spark-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo and Title */}
+            {/* Logo and Navigation */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-spark-blue-600">
-                Daily Spark
-              </h1>
-              <span className="ml-2 text-sm text-spark-gray-800">
-                Your Partner in Daily Learning
-              </span>
+              <div className="flex-shrink-0">
+                <div className="flex items-center">
+                  <BookOpen className="h-8 w-8 text-spark-blue-500" />
+                  <span className="ml-2 text-xl font-bold text-spark-gray-800">Daily Spark</span>
+                </div>
+              </div>
+              
+              {/* Navigation Links */}
+              <nav className="ml-10 flex space-x-8">
+                {navigation.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.href;
+                  
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'text-spark-blue-600 border-b-2 border-spark-blue-600'
+                          : 'text-spark-gray-500 hover:text-spark-gray-700 hover:border-b-2 hover:border-spark-gray-300'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-1" />
+                      {item.name}
+                    </a>
+                  );
+                })}
+              </nav>
             </div>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => navigate(item.href)}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-spark-light-blue text-spark-blue-600'
-                        : 'text-spark-gray-600 hover:text-spark-blue-600 hover:bg-spark-light-blue'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {item.name}
-                  </button>
-                );
-              })}
-            </nav>
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center text-spark-gray-600 hover:text-spark-blue-600 transition-colors"
-              >
-                <User className="w-4 h-4 mr-2" />
-                <span className="hidden sm:block">{state.user.displayName}</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-spark-gray-600 hover:text-red-600 transition-colors"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                <span className="hidden sm:block">Logout</span>
-              </button>
+              {/* Demo Banner */}
+              {isDemoUser(state.user.id) && <DemoBanner />}
+              
+              {/* User Info */}
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-spark-gray-500" />
+                  <span className="text-sm font-medium text-spark-gray-700">
+                    {state.user.displayName}
+                  </span>
+                </div>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-spark-gray-700 bg-spark-gray-100 hover:bg-spark-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </header>
-
-      {/* Mobile Navigation */}
-      <div className="md:hidden bg-white border-b border-spark-gray-200">
-        <div className="px-4 py-2">
-          <div className="flex space-x-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              return (
-                <button
-                  key={item.name}
-                  onClick={() => navigate(item.href)}
-                  className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-spark-light-blue text-spark-blue-600'
-                      : 'text-spark-gray-600 hover:text-spark-blue-600 hover:bg-spark-light-blue'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {item.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Demo Banner */}
-      {state.user && isDemoUser(state.user.id) && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <DemoBanner />
-        </div>
-      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
