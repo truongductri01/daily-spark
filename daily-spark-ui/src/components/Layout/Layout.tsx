@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { LogOut, User, BookOpen, Upload, Home } from 'lucide-react';
+import { isDemoUser } from '../../utils/config';
+import DemoBanner from '../DemoBanner';
 
 const Layout: React.FC = () => {
   const { state, logout } = useAppContext();
@@ -107,6 +109,13 @@ const Layout: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Demo Banner */}
+      {state.user && isDemoUser(state.user.id) && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <DemoBanner />
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

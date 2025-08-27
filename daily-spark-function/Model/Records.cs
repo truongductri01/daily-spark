@@ -97,3 +97,17 @@ public enum CurriculumStatus
     [EnumMember(Value = "Active")]
     Active
 }
+
+public record UserCounter
+{
+    [JsonProperty("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonProperty("totalUsers")]
+    public int TotalUsers { get; set; } = 0;
+
+    [JsonProperty("lastUpdated")]
+    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+
+    public string PartitionKey { get; set; } = string.Empty;
+}

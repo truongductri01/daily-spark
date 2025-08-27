@@ -5,6 +5,7 @@ import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
+import { isDemoUser } from '../utils/config';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, createCurriculum } = useAppContext();
@@ -75,7 +76,7 @@ const CurriculumUploadPage: React.FC = () => {
       ? input.topics.map((t: any) => ({
           title: typeof t?.title === 'string' ? t.title : '',
           description: typeof t?.description === 'string' ? t.description : '',
-          estimatedTime: typeof t?.estimatedTime === 'string' ? t.estimatedTime : '',
+          estimatedTime: typeof t?.estimatedTime === 'string' || typeof t?.estimatedTime === 'number' ? t.estimatedTime : '',
           question: typeof t?.question === 'string' ? t.question : '',
           resources: Array.isArray(t?.resources) ? t.resources : [],
           status: 'NotStarted' as const,
@@ -193,13 +194,27 @@ const CurriculumUploadPage: React.FC = () => {
         return null;
       }
 
-      if (!topic.estimatedTime || topic.estimatedTime === null || topic.estimatedTime === undefined) {
+      // Check if estimatedTime exists and is not null/undefined
+      if (topic.estimatedTime === null || topic.estimatedTime === undefined) {
         setError(`Topic ${i + 1} is missing required field: estimatedTime`);
         return null;
       }
 
-      if (typeof topic.estimatedTime !== 'string' || topic.estimatedTime.trim() === '') {
+      // Accept both string and number for estimatedTime
+      if (typeof topic.estimatedTime !== 'string' && typeof topic.estimatedTime !== 'number') {
+        setError(`Topic ${i + 1} estimatedTime must be a string or number`);
+        return null;
+      }
+
+      // For strings, check they're not empty
+      if (typeof topic.estimatedTime === 'string' && topic.estimatedTime.trim() === '') {
         setError(`Topic ${i + 1} estimatedTime must be a non-empty string`);
+        return null;
+      }
+
+      // For numbers, check they're not negative (optional validation)
+      if (typeof topic.estimatedTime === 'number' && topic.estimatedTime < 0) {
+        setError(`Topic ${i + 1} estimatedTime must be a non-negative number`);
         return null;
       }
 
@@ -446,23 +461,31 @@ const CurriculumUploadPage: React.FC = () => {
 
                 {/* Create Button */}
                 <div className="pt-4 border-t border-spark-gray-200">
-                  <button
-                    onClick={handleCreateCurriculum}
-                    disabled={isLoading || !parsedData}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center">
-                        <ButtonSpinner />
-                        <span className="ml-2">Creating Curriculum...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <Save className="w-4 h-4 mr-2" />
-                        Create New Curriculum
-                      </div>
-                    )}
-                  </button>
+                  {!isDemoUser(state.user.id) ? (
+                    <button
+                      onClick={handleCreateCurriculum}
+                      disabled={isLoading || !parsedData}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center">
+                          <ButtonSpinner />
+                          <span className="ml-2">Creating Curriculum...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <Save className="w-4 h-4 mr-2" />
+                          Create New Curriculum
+                        </div>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-spark-gray-500">
+                        Demo mode: Create functionality is disabled
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

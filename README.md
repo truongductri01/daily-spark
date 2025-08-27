@@ -78,7 +78,10 @@ Create/update `daily-spark-function/local.settings.json`:
     "COSMOS_DB_API_KEY": "<your-cosmos-db-api-key>",
     "COSMOS_DB_DATABASE_ID": "daily-spark",
     "COSMOS_DB_USER_CONTAINER_ID": "users",
-    "COSMOS_DB_CURRICULUM_CONTAINER_ID": "curricula"
+    "COSMOS_DB_CURRICULUM_CONTAINER_ID": "curricula",
+    "USER_COUNTER_DOCUMENT_ID": "user-counter",
+    "MAX_USERS_LIMIT": "100",
+    "DEMO_USER_ID": "first-user"
   }
 }
 ```
@@ -158,11 +161,33 @@ Monitor the function execution in your terminal where `func start` is running. Y
 | `COSMOS_DB_DATABASE_ID` | Database name | Yes |
 | `COSMOS_DB_USER_CONTAINER_ID` | Users container name | Yes |
 | `COSMOS_DB_CURRICULUM_CONTAINER_ID` | Curricula container name | Yes |
+| `USER_COUNTER_DOCUMENT_ID` | User counter document ID | No (default: "user-counter") |
+| `MAX_USERS_LIMIT` | Maximum number of users allowed | No (default: 100) |
+| `DEMO_USER_ID` | Demo user ID for readonly access | No (default: "first-user") |
 
 ### Cosmos DB Configuration
 - **Database**: `daily-spark`
 - **Containers**: `users`, `curricula`
 - **Partition Key**: `/PartitionKey` (same as userId)
+
+### User Counter System
+The system uses an efficient counter document to track the total number of users:
+
+- **Counter Document**: Stored in the `users` container with ID `user-counter`
+- **Performance**: O(1) operations instead of O(n) COUNT queries
+- **Auto-Initialization**: Counter document created automatically if missing
+- **User Limit**: Configurable limit (default: 100 users) enforced on user creation
+
+#### **User Counter Endpoints**
+```bash
+# Get current user count
+GET /api/GetUserCount
+Response: { "totalUsers": 42 }
+
+# Create user (with limit check)
+POST /api/CreateUser
+Body: { "email": "user@example.com", "displayName": "User Name" }
+```
 
 ## 📊 Function Execution Flow
 

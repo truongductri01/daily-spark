@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { CardSkeleton } from '../components/LoadingSpinner';
 import { BookOpen, Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { isDemoUser } from '../utils/config';
 
 
 const DashboardPage: React.FC = () => {
@@ -175,13 +176,15 @@ const DashboardPage: React.FC = () => {
         <div className="px-6 py-4 border-b border-spark-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-spark-gray-800">Your Curricula</h3>
-            <button
-              onClick={() => navigate('/upload')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New
-            </button>
+            {!isDemoUser(state.user.id) && (
+              <button
+                onClick={() => navigate('/upload')}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New
+              </button>
+            )}
           </div>
         </div>
         
@@ -194,13 +197,19 @@ const DashboardPage: React.FC = () => {
                 Get started by creating your first learning curriculum.
               </p>
               <div className="mt-6">
-                <button
-                  onClick={() => navigate('/upload')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Curriculum
-                </button>
+                {!isDemoUser(state.user.id) ? (
+                  <button
+                    onClick={() => navigate('/upload')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Curriculum
+                  </button>
+                ) : (
+                  <p className="text-sm text-spark-gray-500">
+                    Demo mode: Create functionality is disabled
+                  </p>
+                )}
               </div>
             </div>
           ) : (

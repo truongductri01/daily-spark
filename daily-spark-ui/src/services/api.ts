@@ -100,6 +100,15 @@ export class ApiService {
     }
   }
 
+  async getUserCount(): Promise<ApiResponse<{ totalUsers: number }>> {
+    try {
+      const response = await httpClient.get<{ totalUsers: number }>(ENDPOINTS.GET_USER_COUNT);
+      return createSuccessResponse(response.data);
+    } catch (error) {
+      return createErrorResponse<{ totalUsers: number }>(convertError(error as Error));
+    }
+  }
+
   /**
    * Curriculum Management
    */

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 
 // Use alias to avoid ambiguity
 using UserModel = DailySpark.Functions.Model.User;
+using UserCounterModel = DailySpark.Functions.Model.UserCounter;
 
 namespace DailySpark.Functions.Helpers;
 
@@ -70,6 +71,107 @@ public static class UserFunctionHelpers
         catch (Exception ex)
         {
             logger.LogError(ex, $"Error getting user by ID: {userId}");
+            throw;
+        }
+    }
+
+    public static async Task<UserCounterModel?> GetUserCounterAsync(Container container, ILogger logger)
+    {
+        try
+        {
+            string counterId = Environment.GetEnvironmentVariable("USER_COUNTER_DOCUMENT_ID") ?? "user-counter";
+
+            string query = "SELECT * FROM c WHERE c.id = @counterId";
+            QueryDefinition queryDefinition = new QueryDefinition(query)
+                .WithParameter("@counterId", counterId);
+
+            FeedIterator<UserCounterModel> iterator = container.GetItemQueryIterator<UserCounterModel>(queryDefinition);
+
+            if (!iterator.HasMoreResults)
+            {
+                return null;
+            }
+
+            FeedResponse<UserCounterModel> response = await iterator.ReadNextAsync();
+            return response.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting user counter");
+            throw;
+        }
+    }
+
+    public static async Task<UserCounterModel> InitializeUserCounterAsync(Container container, ILogger logger)
+    {
+        try
+        {
+            string counterId = Environment.GetEnvironmentVariable("USER_COUNTER_DOCUMENT_ID") ?? "user-counter";
+
+            // First, try to get existing counter
+            UserCounterModel? existingCounter = await GetUserCounterAsync(container, logger);
+            if (existingCounter != null)
+            {
+                return existingCounter;
+            }
+
+            // If counter doesn't exist, create it
+            UserCounterModel newCounter = new UserCounterModel
+            {
+                Id = counterId,
+                TotalUsers = 0,
+                LastUpdated = DateTime.UtcNow,
+                PartitionKey = counterId
+            };
+
+            await container.CreateItemAsync(newCounter, new PartitionKey(counterId));
+            logger.LogInformation($"Initialized user counter with ID: {counterId}");
+
+            return newCounter;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error initializing user counter");
+            throw;
+        }
+    }
+
+    public static async Task<int> IncrementUserCounterAsync(Container container, ILogger logger)
+    {
+        try
+        {
+            string counterId = Environment.GetEnvironmentVariable("USER_COUNTER_DOCUMENT_ID") ?? "user-counter";
+
+            // Get current counter
+            UserCounterModel counter = await InitializeUserCounterAsync(container, logger);
+
+            // Increment the count
+            counter.TotalUsers++;
+            counter.LastUpdated = DateTime.UtcNow;
+
+            // Update the counter document
+            await container.ReplaceItemAsync(counter, counterId, new PartitionKey(counterId));
+
+            logger.LogInformation($"Incremented user counter to: {counter.TotalUsers}");
+            return counter.TotalUsers;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error incrementing user counter");
+            throw;
+        }
+    }
+
+    public static async Task<int> GetUserCountAsync(Container container, ILogger logger)
+    {
+        try
+        {
+            UserCounterModel counter = await InitializeUserCounterAsync(container, logger);
+            return counter.TotalUsers;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting user count");
             throw;
         }
     }

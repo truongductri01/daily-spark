@@ -5,6 +5,7 @@ import { useToastHelpers } from '../components/Toast';
 import { CardSkeleton } from '../components/LoadingSpinner';
 import { BookOpen, Edit, Trash2, Plus, Calendar, Clock } from 'lucide-react';
 import { Curriculum } from '../types';
+import { isDemoUser } from '../utils/config';
 
 const CurriculumListPage: React.FC = () => {
   const { state, loadCurricula, deleteCurriculum } = useAppContext();
@@ -108,13 +109,15 @@ const CurriculumListPage: React.FC = () => {
             Manage and track your learning curricula
           </p>
         </div>
-        <button
-          onClick={() => navigate('/upload')}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create New
-        </button>
+        {!isDemoUser(state.user.id) && (
+          <button
+            onClick={() => navigate('/upload')}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create New
+          </button>
+        )}
       </div>
 
       {/* Curricula Grid */}
@@ -126,13 +129,19 @@ const CurriculumListPage: React.FC = () => {
             Get started by creating your first learning curriculum.
           </p>
           <div className="mt-6">
-            <button
-              onClick={() => navigate('/upload')}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Curriculum
-            </button>
+            {!isDemoUser(state.user.id) ? (
+              <button
+                onClick={() => navigate('/upload')}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Curriculum
+              </button>
+            ) : (
+              <p className="text-sm text-spark-gray-500">
+                Demo mode: Create functionality is disabled
+              </p>
+            )}
           </div>
         </div>
       ) : (
@@ -201,19 +210,31 @@ const CurriculumListPage: React.FC = () => {
                   </div>
                   
                   <div className="flex space-x-2">
-                    <button
-                      onClick={() => navigate(`/edit/${curriculum.id}`)}
-                      className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-spark-gray-300 text-sm font-medium rounded-md text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(curriculum.id)}
-                      className="inline-flex items-center justify-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {!isDemoUser(state.user!.id) ? (
+                      <>
+                        <button
+                          onClick={() => navigate(`/edit/${curriculum.id}`)}
+                          className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-spark-gray-300 text-sm font-medium rounded-md text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(curriculum.id)}
+                          className="inline-flex items-center justify-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => navigate(`/edit/${curriculum.id}`)}
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-spark-gray-300 text-sm font-medium rounded-md text-spark-gray-700 bg-white hover:bg-spark-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        View
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
