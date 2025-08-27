@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
-import { ButtonSpinner, LoadingSpinner } from '../components/LoadingSpinner';
+import { ButtonSpinner } from '../components/LoadingSpinner';
 import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { Curriculum, Topic } from '../types';
 import { isDemoUser } from '../utils/config';
@@ -276,8 +276,41 @@ const CurriculumEditPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner size="lg" text="Loading curriculum..." />
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div>
+              <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+
+        {/* Topics Skeleton */}
+        <div className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-spark-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-48 h-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-1/2 h-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

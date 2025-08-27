@@ -22,8 +22,8 @@ const Layout: React.FC = () => {
     { name: 'Upload New', href: '/upload', icon: Upload },
   ];
 
-  // Show loading while checking authentication
-  if (!state.isInitialized) {
+  // Show loading only if we have no user data and are still initializing
+  if (!state.isInitialized && !state.user) {
     return (
       <div className="min-h-screen bg-spark-gray-100 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
