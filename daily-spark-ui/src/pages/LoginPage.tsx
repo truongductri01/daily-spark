@@ -45,10 +45,6 @@ const LoginPage: React.FC = () => {
     navigate('/profile');
   };
 
-  const handleUseDemoAccount = () => {
-    setUserId(config.DEMO_USER_ID);
-  };
-
   // Show loading while checking authentication
   if (!state.isInitialized) {
     return (

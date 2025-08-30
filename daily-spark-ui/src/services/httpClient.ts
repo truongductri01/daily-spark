@@ -130,7 +130,7 @@ async function retryRequest<T>(
   retryAttempts: number,
   retryDelay: number
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error = new Error('Unknown error in retryRequest');
 
   for (let attempt = 0; attempt <= retryAttempts; attempt++) {
     try {
@@ -154,7 +154,7 @@ async function retryRequest<T>(
     }
   }
 
-  throw lastError!;
+  throw lastError;
 }
 
 /**
