@@ -15,3 +15,6 @@ export {
   TableSkeleton, 
   LoadingOverlay 
 } from './LoadingSpinner';
+
+// Tutorial components
+export { default as TutorialModal } from './TutorialModal';

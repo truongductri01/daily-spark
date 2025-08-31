@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
-import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { TutorialModal } from '../components';
+import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle, Info, HelpCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
 import { isDemoUser, config } from '../utils/config';
 
@@ -23,6 +24,7 @@ const CurriculumUploadPage: React.FC = () => {
   const [leftPaneWidth, setLeftPaneWidth] = useState<number>(50); // percentage
   const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
   const resizerRef = useRef<HTMLDivElement | null>(null);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
 
   const handleResizerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -331,6 +333,13 @@ const CurriculumUploadPage: React.FC = () => {
             <p className="mt-2 text-spark-gray-600">
               Upload JSON data or paste content to create a new learning curriculum
             </p>
+            <button
+              onClick={() => setIsTutorialOpen(true)}
+              className="mt-3 inline-flex items-center px-3 py-1.5 text-sm text-spark-blue-600 hover:text-spark-blue-700 hover:bg-spark-blue-50 border border-spark-blue-300 hover:border-spark-blue-400 rounded-md transition-all duration-200 font-medium"
+            >
+              <HelpCircle className="w-4 h-4 mr-1.5" />
+              How to create a curriculum?
+            </button>
           </div>
         </div>
         
@@ -518,6 +527,12 @@ const CurriculumUploadPage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Tutorial Modal */}
+      <TutorialModal 
+        isOpen={isTutorialOpen} 
+        onClose={() => setIsTutorialOpen(false)} 
+      />
     </div>
   );
 };
