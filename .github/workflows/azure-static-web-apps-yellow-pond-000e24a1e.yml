@@ -17,8 +17,8 @@ jobs:
       # deployment environment variables - updated via GitHub Secrets
       REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
       REACT_APP_ENABLE_LOGGING: ${{ secrets.REACT_APP_ENABLE_LOGGING }}
-      DEMO_USER_ID: ${{ secrets.DEMO_USER_ID }}
-      MAX_USERS_LIMIT: ${{ secrets.MAX_USERS_LIMIT }}
+      REACT_APP_DEMO_USER_ID: ${{ secrets.DEMO_USER_ID }}
+      REACT_APP_MAX_USERS_LIMIT: ${{ secrets.MAX_USERS_LIMIT }}
       REACT_APP_STORAGE_KEY: ${{ secrets.REACT_APP_STORAGE_KEY }}
     name: Build and Deploy Job
     permissions:
