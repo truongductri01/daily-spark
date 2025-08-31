@@ -37,6 +37,8 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-spark-gray-100">
+
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-spark-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,9 +59,9 @@ const Layout: React.FC = () => {
                   const isActive = location.pathname === item.href;
                   
                   return (
-                    <a
+                    <button
                       key={item.name}
-                      href={item.href}
+                      onClick={() => navigate(item.href)}
                       className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
                         isActive
                           ? 'text-spark-blue-600 border-b-2 border-spark-blue-600'
@@ -68,7 +70,7 @@ const Layout: React.FC = () => {
                     >
                       <Icon className="w-4 h-4 mr-1" />
                       {item.name}
-                    </a>
+                    </button>
                   );
                 })}
               </nav>
@@ -76,9 +78,6 @@ const Layout: React.FC = () => {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              {/* Demo Banner */}
-              {isDemoUser(state.user.id) && <DemoBanner />}
-              
               {/* User Info */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
@@ -105,6 +104,14 @@ const Layout: React.FC = () => {
         </div>
       </header>
 
+      {/* Demo Banner - Above Header */}
+      {isDemoUser(state.user.id) && (
+        <div className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <DemoBanner />
+          </div>
+        </div>
+      )}
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
