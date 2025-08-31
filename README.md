@@ -143,6 +143,36 @@ npm run build
 # Deploy build folder to your hosting service
 ```
 
+### Deploying Azure Functions via CLI
+
+Follow these steps to publish and deploy your Azure Functions app:
+
+1. **Publish the function app:**
+   ```zsh
+   dotnet publish -c Release
+   ```
+
+2. **Navigate to the publish output directory:**
+   ```zsh
+   cd daily-spark-function/bin/Release/net8.0/publish
+   ```
+
+3. **Zip the contents of the publish folder (not the folder itself):**
+   ```zsh
+   zip -r ../daily-spark-functions.zip .
+   ```
+
+4. **Deploy the zip to Azure using the CLI:**
+   Replace `<function-app-name>` and `<resource-group>` with your Azure Function App name and resource group.
+   ```zsh
+   az functionapp deployment source config-zip \
+     --name <function-app-name> \
+     --resource-group <resource-group> \
+     --src ../daily-spark-functions.zip
+   ```
+
+This will deploy your Azure Functions app using the zipped publish output.
+
 For detailed deployment instructions, see **[MVP Release Guide](docs/deployment/MVPForRelease.md)**.
 
 ## 🔒 Security Considerations
