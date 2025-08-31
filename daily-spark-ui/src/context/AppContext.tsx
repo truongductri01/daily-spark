@@ -10,6 +10,7 @@ import {
   LoadingState
 } from '../types';
 import { apiService } from '../services';
+import { isCurriculumLimitReached } from '../utils/config';
 
 // Enhanced state interface with granular loading states
 interface AppState {
@@ -256,7 +257,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 // Enhanced context interface with API operations
 interface AppContextType {
-  state: AppState;
+  state: AppState & {
+    // Computed properties for curriculum limits
+    curriculumCount: number;
+    curriculumLimitReached: boolean;
+  };
   
   // User operations
   login: (userId: string) => Promise<void>;
@@ -553,8 +558,16 @@ export function AppProvider({ children }: AppProviderProps) {
     }
   }, []);
 
+  // Compute curriculum limit properties
+  const curriculumCount = state.curricula.length;
+  const curriculumLimitReached = isCurriculumLimitReached(curriculumCount);
+
   const contextValue: AppContextType = {
-    state,
+    state: {
+      ...state,
+      curriculumCount,
+      curriculumLimitReached,
+    },
     login,
     logout,
     createUser,

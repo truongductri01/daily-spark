@@ -160,6 +160,20 @@ public class CreateCurriculum
             // Get Cosmos DB container
             Container curriculumContainer = CurriculumFunctionHelpers.GetCurriculumContainer();
 
+            // Check curriculum limit before creating new curriculum
+            List<CurriculumModel> existingCurricula = await CurriculumFunctionHelpers.GetCurriculaByUserIdAsync(curriculumContainer, requestData.UserId, _logger);
+            string maxCurriculaLimitStr = Environment.GetEnvironmentVariable("MAX_CURRICULA_PER_USER") ?? "5";
+            if (!int.TryParse(maxCurriculaLimitStr, out int maxCurriculaLimit))
+            {
+                maxCurriculaLimit = 5; // Default fallback
+            }
+
+            if (existingCurricula.Count >= maxCurriculaLimit)
+            {
+                _logger.LogWarning($"Curriculum limit reached for user {requestData.UserId}. Current count: {existingCurricula.Count}, Limit: {maxCurriculaLimit}");
+                return new BadRequestObjectResult($"Curriculum limit reached. Maximum allowed curricula per user: {maxCurriculaLimit}. Current curricula: {existingCurricula.Count}");
+            }
+
             // Check if curriculum with provided ID already exists (if ID was provided)
             if (!string.IsNullOrEmpty(requestData.Id))
             {

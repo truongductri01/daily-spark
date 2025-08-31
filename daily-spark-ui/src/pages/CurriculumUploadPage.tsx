@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
-import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { TutorialModal } from '../components';
+import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle, Info, HelpCircle } from 'lucide-react';
 import { CurriculumFormData, CurriculumStatus } from '../types';
-import { isDemoUser } from '../utils/config';
+import { isDemoUser, config } from '../utils/config';
 
 const CurriculumUploadPage: React.FC = () => {
   const { state, createCurriculum } = useAppContext();
@@ -23,6 +24,7 @@ const CurriculumUploadPage: React.FC = () => {
   const [leftPaneWidth, setLeftPaneWidth] = useState<number>(50); // percentage
   const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
   const resizerRef = useRef<HTMLDivElement | null>(null);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
 
   const handleResizerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -285,9 +287,15 @@ const CurriculumUploadPage: React.FC = () => {
       setSuccess('Curriculum created successfully! Redirecting to dashboard...');
       showSuccess('Curriculum Created', 'Curriculum has been created successfully!');
       setTimeout(() => navigate('/dashboard'), 1500);
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      showError('Creation Failed', 'Failed to create curriculum. Please try again.');
+    } catch (err: any) {
+      // Handle curriculum limit errors specifically
+      if (err?.message?.includes('Curriculum limit reached')) {
+        setError('Curriculum limit reached. You can only create up to 5 curricula.');
+        showError('Curriculum Limit Reached', 'You can only create up to 5 curricula. Please delete an existing curriculum to create a new one.');
+      } else {
+        setError('An error occurred. Please try again.');
+        showError('Creation Failed', 'Failed to create curriculum. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -325,6 +333,28 @@ const CurriculumUploadPage: React.FC = () => {
             <p className="mt-2 text-spark-gray-600">
               Upload JSON data or paste content to create a new learning curriculum
             </p>
+            <button
+              onClick={() => setIsTutorialOpen(true)}
+              className="mt-3 inline-flex items-center px-3 py-1.5 text-sm text-spark-blue-600 hover:text-spark-blue-700 hover:bg-spark-blue-50 border border-spark-blue-300 hover:border-spark-blue-400 rounded-md transition-all duration-200 font-medium"
+            >
+              <HelpCircle className="w-4 h-4 mr-1.5" />
+              How to create a curriculum?
+            </button>
+          </div>
+        </div>
+        
+        {/* Curriculum Count and Limit Status */}
+        <div className="flex items-center space-x-4">
+          <div className="text-right">
+            <div className="text-sm text-spark-gray-600">
+              {state.curriculumCount} / {config.MAX_CURRICULA_PER_USER} curricula
+            </div>
+            {state.curriculumLimitReached && (
+              <div className="flex items-center text-sm text-red-600 mt-1">
+                <Info className="w-4 h-4 mr-1" />
+                Limit reached
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -464,13 +494,18 @@ const CurriculumUploadPage: React.FC = () => {
                   {!isDemoUser(state.user.id) ? (
                     <button
                       onClick={handleCreateCurriculum}
-                      disabled={isLoading || !parsedData}
+                      disabled={isLoading || !parsedData || state.curriculumLimitReached}
                       className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {isLoading ? (
                         <div className="flex items-center">
                           <ButtonSpinner />
                           <span className="ml-2">Creating Curriculum...</span>
+                        </div>
+                      ) : state.curriculumLimitReached ? (
+                        <div className="flex items-center">
+                          <Info className="w-4 h-4 mr-2" />
+                          Curriculum Limit Reached
                         </div>
                       ) : (
                         <div className="flex items-center">
@@ -492,6 +527,12 @@ const CurriculumUploadPage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Tutorial Modal */}
+      <TutorialModal 
+        isOpen={isTutorialOpen} 
+        onClose={() => setIsTutorialOpen(false)} 
+      />
     </div>
   );
 };
