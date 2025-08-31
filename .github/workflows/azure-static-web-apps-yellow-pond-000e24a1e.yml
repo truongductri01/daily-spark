@@ -14,7 +14,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     env:
-      # deployment environment variables
+      # deployment environment variables - updated via GitHub Secrets
       REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
       REACT_APP_ENABLE_LOGGING: ${{ secrets.REACT_APP_ENABLE_LOGGING }}
       DEMO_USER_ID: ${{ secrets.DEMO_USER_ID }}
