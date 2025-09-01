@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
-import { LogOut, User, BookOpen, Upload, Home } from 'lucide-react';
+import { LogOut, User, BookOpen, Upload, Home, MessageSquare } from 'lucide-react';
 import { isDemoUser } from '../../utils/config';
 import DemoBanner from '../DemoBanner';
 import { LoadingSpinner } from '../LoadingSpinner';
@@ -14,6 +14,10 @@ const Layout: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleFeedback = () => {
+    window.open('https://forms.office.com/r/F1GJpqzi8a', '_blank');
   };
 
   const navigation = [
@@ -89,6 +93,15 @@ const Layout: React.FC = () => {
                     {state.user.displayName}
                   </button>
                 </div>
+                
+                {/* Feedback Button */}
+                <button
+                  onClick={handleFeedback}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-spark-blue-500 hover:bg-spark-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spark-blue-500 transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4 mr-1" />
+                  Feedback
+                </button>
                 
                 {/* Logout Button */}
                 <button
