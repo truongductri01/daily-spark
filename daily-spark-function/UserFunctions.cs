@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Helpers;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 // Use aliases to avoid ambiguity
 using UserModel = DailySpark.Functions.Model.User;
@@ -38,7 +38,7 @@ public class CreateUser
                 return new BadRequestObjectResult("Request body is required");
             }
 
-            CreateUserRequest? requestData = JsonConvert.DeserializeObject<CreateUserRequest>(requestBody);
+            CreateUserRequest? requestData = JsonSerializer.Deserialize<CreateUserRequest>(requestBody);
             if (requestData == null)
             {
                 return new BadRequestObjectResult("Invalid request format");
@@ -191,7 +191,7 @@ public class UpdateUser
                 return new BadRequestObjectResult("Request body is required");
             }
 
-            UpdateUserRequest? requestData = JsonConvert.DeserializeObject<UpdateUserRequest>(requestBody);
+            UpdateUserRequest? requestData = JsonSerializer.Deserialize<UpdateUserRequest>(requestBody);
             if (requestData == null)
             {
                 return new BadRequestObjectResult("Invalid request format");

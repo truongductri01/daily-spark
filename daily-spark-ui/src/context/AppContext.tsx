@@ -471,6 +471,7 @@ export function AppProvider({ children }: AppProviderProps) {
         dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: false, error } });
       }
     } catch (error) {
+      console.error('Error loading curricula:', error);
       const apiError: ApiError = {
         message: error instanceof Error ? error.message : 'Network error occurred',
         statusCode: 500,

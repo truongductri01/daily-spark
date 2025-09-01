@@ -1,30 +1,30 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailySpark.Functions.Model;
 
 // For CreateUser: Use User model with optional Id
 public record CreateUserRequest
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
 
-    [JsonProperty("email")]
+    [JsonPropertyName("email")]
     public string Email { get; set; } = string.Empty;
 
-    [JsonProperty("displayName")]
+    [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 }
 
 // For UpdateUser: Use User model with required Id
 public record UpdateUserRequest
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonProperty("email")]
+    [JsonPropertyName("email")]
     public string? Email { get; set; }
 
-    [JsonProperty("displayName")]
+    [JsonPropertyName("displayName")]
     public string? DisplayName { get; set; }
 }
 
