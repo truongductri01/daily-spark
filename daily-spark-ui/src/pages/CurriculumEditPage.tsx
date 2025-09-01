@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
-import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { Curriculum, Topic } from '../types';
+import { ArrowLeft, Save, Trash2, GripVertical, CheckCircle, Clock, AlertCircle, RefreshCw, Mail } from 'lucide-react';
+import { Curriculum, Topic, TopicStatus } from '../types';
 import { isDemoUser } from '../utils/config';
 import {
   DndContext,
@@ -33,9 +33,10 @@ interface SortableTopicItemProps {
   onStatusChange: (topicId: string, status: Topic['status']) => void;
   onDelete: (topicId: string) => void;
   isDemoUser: boolean;
+  isNextTopic: boolean;
 }
 
-const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onStatusChange, onDelete, isDemoUser }) => {
+const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onStatusChange, onDelete, isDemoUser, isNextTopic }) => {
   const {
     attributes,
     listeners,
@@ -51,22 +52,22 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: TopicStatus) => {
     switch (status) {
-      case 'Completed':
+      case TopicStatus.Completed:
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'InProgress':
+      case TopicStatus.InProgress:
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: TopicStatus) => {
     switch (status) {
-      case 'Completed':
+      case TopicStatus.Completed:
         return <CheckCircle className="w-4 h-4" />;
-      case 'InProgress':
+      case TopicStatus.InProgress:
         return <Clock className="w-4 h-4" />;
       default:
         return <AlertCircle className="w-4 h-4" />;
@@ -77,7 +78,11 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white border border-spark-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow"
+      className={`border rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow ${
+        isNextTopic 
+          ? 'bg-spark-blue-50 border-spark-blue-300' 
+          : 'bg-white border-spark-gray-200'
+      }`}
     >
       <div className="flex items-start space-x-3">
         {/* Drag Handle */}
@@ -96,14 +101,20 @@ const SortableTopicItem: React.FC<SortableTopicItemProps> = ({ topic, index, onS
               {index + 1}. {topic.title}
             </h4>
             <div className="flex items-center space-x-2">
+              {isNextTopic && (
+                <div className="flex items-center text-spark-blue-600 text-xs font-medium">
+                  <Mail className="w-3 h-3 mr-1" />
+                  Next
+                </div>
+              )}
               <select
                 value={topic.status}
                 onChange={(e) => onStatusChange(topic.id, e.target.value as Topic['status'])}
                 className="text-sm border border-spark-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-spark-blue-500 focus:border-spark-blue-500"
               >
-                <option value="NotStarted">Not Started</option>
-                <option value="InProgress">In Progress</option>
-                <option value="Completed">Completed</option>
+                <option value={TopicStatus.NotStarted}>Not Started</option>
+                <option value={TopicStatus.InProgress}>In Progress</option>
+                <option value={TopicStatus.Completed}>Completed</option>
               </select>
               {!isDemoUser && (
                 <button
@@ -193,6 +204,11 @@ const CurriculumEditPage: React.FC = () => {
       }
     }
   }, [id, state.curricula]);
+
+  const getNextTopicToSend = (curriculum: Curriculum) => {
+    // Find the first topic that is not completed (lowest index)
+    return curriculum.topics.find(topic => topic.status !== TopicStatus.Completed);
+  };
 
   const handleRefresh = async () => {
     if (!state.user) return;
@@ -332,6 +348,8 @@ const CurriculumEditPage: React.FC = () => {
     );
   }
 
+  const nextTopic = getNextTopicToSend(curriculum);
+
   return (
     <div className="curriculum-edit-page space-y-6">
       {/* Header */}
@@ -408,6 +426,23 @@ const CurriculumEditPage: React.FC = () => {
           <span>•</span>
           <span>Status: {curriculum.status}</span>
         </div>
+        
+        {/* Next Topic to Send */}
+        {nextTopic && (
+          <div className="mt-4 pt-4 border-t border-spark-gray-200">
+            <div className="flex items-center text-sm text-spark-gray-700">
+              <Mail className="w-4 h-4 mr-2 text-spark-blue-600 flex-shrink-0" />
+              <span className="font-medium mr-1">Next topic to be sent:</span>
+              <span 
+                className="truncate text-spark-blue-600" 
+                title={nextTopic.title}
+                style={{ maxWidth: '300px' }}
+              >
+                {nextTopic.title}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Topics List */}
@@ -436,6 +471,7 @@ const CurriculumEditPage: React.FC = () => {
                   onStatusChange={handleStatusChange}
                   onDelete={handleDeleteTopic}
                   isDemoUser={isDemoUser(state.user!.id)}
+                  isNextTopic={nextTopic?.id === topic.id}
                 />
               ))}
             </SortableContext>

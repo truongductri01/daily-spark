@@ -1,30 +1,30 @@
 namespace DailySpark.Functions.Contract;
 
 using DailySpark.Functions.Model;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 public record ReturnTopic
 {
-    [JsonProperty("courseTitle")]
+    [JsonPropertyName("courseTitle")]
     public string CourseTitle { get; set; } = string.Empty;
 
-    [JsonProperty("title")]
+    [JsonPropertyName("title")]
     public string Title { get; set; } = string.Empty;
 
-    [JsonProperty("description")]
+    [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
-    [JsonProperty("estimatedTime")]
+    [JsonPropertyName("estimatedTime")]
     public string EstimatedTime { get; set; } = string.Empty; // in seconds
 
-    [JsonProperty("question")]
+    [JsonPropertyName("question")]
     public string Question { get; set; } = string.Empty;
 
-    [JsonProperty("resources")]
+    [JsonPropertyName("resources")]
     public List<string> Resources { get; set; } = new List<string>();
 
-    [JsonProperty("status")]
-    [JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+    [JsonPropertyName("status")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public TopicStatus Status { get; set; } = TopicStatus.NotStarted;
 }

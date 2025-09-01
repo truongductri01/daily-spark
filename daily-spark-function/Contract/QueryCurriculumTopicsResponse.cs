@@ -1,16 +1,16 @@
 namespace DailySpark.Functions.Contract;
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 public record QueryCurriculumTopicsResponse
 {
-    [JsonProperty("displayName")]
+    [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 
-    [JsonProperty("email")]
+    [JsonPropertyName("email")]
     public string Email { get; set; } = string.Empty;
 
-    [JsonProperty("topics")]
+    [JsonPropertyName("topics")]
     public List<ReturnTopic> Topics { get; set; } = new List<ReturnTopic>();
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DailySpark.Functions.Helpers
 {
@@ -9,7 +9,7 @@ namespace DailySpark.Functions.Helpers
         {
             return new ContentResult
             {
-                Content = JsonConvert.SerializeObject(response),
+                Content = JsonSerializer.Serialize(response),
                 ContentType = "application/json",
                 StatusCode = statusCode
             };
