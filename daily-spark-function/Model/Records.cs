@@ -1,18 +1,20 @@
 namespace DailySpark.Functions.Model;
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using System.Runtime.Serialization;
+using Newtonsoft.Json.Converters;
 
 public record User
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonPropertyName("displayName")]
+    [JsonProperty("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 
-    [JsonPropertyName("email")]
+    [JsonProperty("email")]
     public string Email { get; set; } = string.Empty;
 
     public string PartitionKey { get; set; } = string.Empty;
@@ -22,77 +24,89 @@ public record Curriculum
 {
     public string PartitionKey { get; set; } = string.Empty;
 
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonPropertyName("userId")]
+    [JsonProperty("userId")]
     public string UserId { get; set; } = string.Empty;
 
-    [JsonPropertyName("courseTitle")]
+    [JsonProperty("courseTitle")]
     public string CourseTitle { get; set; } = string.Empty;
 
-    [JsonPropertyName("status")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonProperty("status")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public CurriculumStatus Status { get; set; } = CurriculumStatus.NotStarted;
 
-    [JsonPropertyName("nextReminderDate")]
+    [JsonProperty("nextReminderDate")]
     public DateTime NextReminderDate { get; set; }
 
-    [JsonPropertyName("topics")]
+    [JsonProperty("topics")]
     public List<Topic> Topics { get; set; } = new List<Topic>();
 }
 
 public record Topic
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonPropertyName("title")]
+    [JsonProperty("title")]
     public string Title { get; set; } = string.Empty;
 
-    [JsonPropertyName("description")]
+    [JsonProperty("description")]
     public string Description { get; set; } = string.Empty;
 
-    [JsonPropertyName("estimatedTime")]
+    [JsonProperty("estimatedTime")]
     public int EstimatedTime { get; set; } // in seconds
 
-    [JsonPropertyName("question")]
+    [JsonProperty("question")]
     public string Question { get; set; } = string.Empty;
 
-    [JsonPropertyName("resources")]
+    [JsonProperty("resources")]
     public List<string> Resources { get; set; } = new List<string>();
 
-    [JsonPropertyName("status")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonProperty("status")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public TopicStatus Status { get; set; } = TopicStatus.NotStarted;
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(StringEnumConverter))]
 public enum TopicStatus
 {
+    [EnumMember(Value = "NotStarted")]
     NotStarted,
+
+    [EnumMember(Value = "InProgress")]
     InProgress,
+
+    [EnumMember(Value = "Completed")]
     Completed
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(StringEnumConverter))]
 public enum CurriculumStatus
 {
+    [EnumMember(Value = "NotStarted")]
     NotStarted,
+
+    [EnumMember(Value = "InProgress")]
     InProgress,
+
+    [EnumMember(Value = "Completed")]
     Completed,
+
+    [EnumMember(Value = "Active")]
     Active
 }
 
 public record UserCounter
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonPropertyName("totalUsers")]
+    [JsonProperty("totalUsers")]
     public int TotalUsers { get; set; } = 0;
 
-    [JsonPropertyName("lastUpdated")]
+    [JsonProperty("lastUpdated")]
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
     public string PartitionKey { get; set; } = string.Empty;

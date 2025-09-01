@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
-using System.Text.Json;
+using Newtonsoft.Json;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Contract;
 using DailySpark.Functions.Helpers;
@@ -119,7 +119,7 @@ public class UserCurriculumService
             FeedResponse<dynamic> response = curriculumIterator.ReadNextAsync().Result;
             foreach (var c in response)
             {
-                var curriculum = JsonSerializer.Deserialize<Curriculum>(c.ToString());
+                var curriculum = JsonConvert.DeserializeObject<Curriculum>(c.ToString());
                 if (curriculum != null)
                 {
                     curriculumList.Add(curriculum);
