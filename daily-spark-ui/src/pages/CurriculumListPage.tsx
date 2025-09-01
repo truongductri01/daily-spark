@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { CardSkeleton } from '../components/LoadingSpinner';
-import { BookOpen, Edit, Trash2, Plus, Calendar, Clock, RefreshCw } from 'lucide-react';
-import { Curriculum } from '../types';
+import { BookOpen, Edit, Trash2, Plus, Calendar, Clock, RefreshCw, Mail } from 'lucide-react';
+import { Curriculum, TopicStatus } from '../types';
 import { isDemoUser } from '../utils/config';
 
 const CurriculumListPage: React.FC = () => {
@@ -63,13 +63,13 @@ const CurriculumListPage: React.FC = () => {
     
     curriculum.topics.forEach(topic => {
       switch (topic.status) {
-        case 'Completed':
+        case TopicStatus.Completed:
           counts.completed++;
           break;
-        case 'InProgress':
+        case TopicStatus.InProgress:
           counts.inProgress++;
           break;
-        case 'NotStarted':
+        case TopicStatus.NotStarted:
           counts.notStarted++;
           break;
       }
@@ -83,6 +83,11 @@ const CurriculumListPage: React.FC = () => {
     if (total === 0) return 0;
     const completed = getStatusCounts(curriculum).completed;
     return Math.round((completed / total) * 100);
+  };
+
+  const getNextTopicToSend = (curriculum: Curriculum) => {
+    // Find the first topic that is not completed (lowest index)
+    return curriculum.topics.find(topic => topic.status !== TopicStatus.Completed);
   };
 
   if (!state.user) {
@@ -172,6 +177,7 @@ const CurriculumListPage: React.FC = () => {
           {state.curricula.map((curriculum) => {
             const statusCounts = getStatusCounts(curriculum);
             const progressPercentage = getProgressPercentage(curriculum);
+            const nextTopic = getNextTopicToSend(curriculum);
             
             return (
               <div key={curriculum.id} className="bg-white rounded-lg shadow-sm border border-spark-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -217,6 +223,19 @@ const CurriculumListPage: React.FC = () => {
                       {statusCounts.notStarted} not started
                     </span>
                   </div>
+
+                  {/* Next Topic to Send */}
+                  {nextTopic && (
+                    <div className="mt-4 p-3 bg-spark-blue-50 border border-spark-blue-200 rounded-md">
+                      <div className="flex items-center text-sm text-spark-blue-800">
+                        <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="font-medium mr-1">Next topic:</span>
+                        <span className="truncate" title={nextTopic.title}>
+                          {nextTopic.title}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer */}

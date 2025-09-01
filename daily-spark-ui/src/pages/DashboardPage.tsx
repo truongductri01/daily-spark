@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { useToastHelpers } from '../components/Toast';
 import { CardSkeleton } from '../components/LoadingSpinner';
 import { BookOpen, Plus, TrendingUp, Clock, CheckCircle, RefreshCw } from 'lucide-react';
+import { TopicStatus } from '../types';
 import { isDemoUser } from '../utils/config';
 
 const DashboardPage: React.FC = () => {
@@ -53,13 +54,13 @@ const DashboardPage: React.FC = () => {
     state.curricula.forEach(curriculum => {
       curriculum.topics.forEach(topic => {
         switch (topic.status) {
-          case 'Completed':
+          case TopicStatus.Completed:
             counts.completed++;
             break;
-          case 'InProgress':
+          case TopicStatus.InProgress:
             counts.inProgress++;
             break;
-          case 'NotStarted':
+          case TopicStatus.NotStarted:
             counts.notStarted++;
             break;
         }
