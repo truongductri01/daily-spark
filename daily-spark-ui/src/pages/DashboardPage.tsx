@@ -15,7 +15,7 @@ const DashboardPage: React.FC = () => {
   // Load curricula only if not already loaded
   useEffect(() => {
     const loadData = async () => {
-      if (state.user && state.curricula.length === 0) {
+      if (state.user && !state.curriculaLoaded && !state.curriculaLoading.isLoading) {
         try {
           await loadCurricula(state.user.id);
         } catch (error) {
@@ -26,7 +26,7 @@ const DashboardPage: React.FC = () => {
     };
 
     loadData();
-  }, [state.user, state.curricula.length, loadCurricula, showError]);
+  }, [state.user, state.curriculaLoaded, state.curriculaLoading.isLoading, loadCurricula, showError]);
 
   const handleRefresh = async () => {
     if (!state.user) return;
