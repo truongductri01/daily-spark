@@ -22,6 +22,7 @@ interface AppState {
   operationLoading: LoadingState;
   userCountLoading: LoadingState;
   isInitialized: boolean; // Track if initial auth check is complete
+  curriculaLoaded: boolean; // Track if curricula have been loaded at least once
 }
 
 // Enhanced action types
@@ -37,6 +38,7 @@ type AppAction =
   | { type: 'SET_OPERATION_LOADING'; payload: LoadingState }
   | { type: 'SET_USER_COUNT_LOADING'; payload: LoadingState }
   | { type: 'SET_INITIALIZED'; payload: boolean }
+  | { type: 'SET_CURRICULA_LOADED'; payload: boolean }
   | { type: 'LOGOUT' };
 
 // Initial state
@@ -49,6 +51,7 @@ const initialState: AppState = {
   operationLoading: { isLoading: false, error: null },
   userCountLoading: { isLoading: false, error: null },
   isInitialized: false,
+  curriculaLoaded: false,
 };
 
 // Storage keys
@@ -191,7 +194,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { 
         ...state, 
         curricula: action.payload, 
-        curriculaLoading: { isLoading: false, error: null } 
+        curriculaLoading: { isLoading: false, error: null },
+        curriculaLoaded: true
       };
     
     case 'ADD_CURRICULUM':
@@ -244,6 +248,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
     
     case 'SET_INITIALIZED':
       return { ...state, isInitialized: action.payload };
+    
+    case 'SET_CURRICULA_LOADED':
+      return { ...state, curriculaLoaded: action.payload };
     
     case 'LOGOUT':
       clearSessionData();
@@ -455,6 +462,11 @@ export function AppProvider({ children }: AppProviderProps) {
       return;
     }
 
+    // Don't load if we've already loaded curricula and not forcing refresh
+    if (!forceRefresh && state.curriculaLoaded && !state.curriculaLoading.isLoading) {
+      return;
+    }
+
     dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: true, error: null } });
     
     try {
@@ -478,7 +490,7 @@ export function AppProvider({ children }: AppProviderProps) {
       };
       dispatch({ type: 'SET_CURRICULUM_LOADING', payload: { isLoading: false, error: apiError } });
     }
-  }, [state.curricula.length, state.curriculaLoading.isLoading]);
+  }, [state.curricula.length, state.curriculaLoaded, state.curriculaLoading.isLoading]);
 
   const createCurriculum = useCallback(async (curriculumData: CreateCurriculumRequest) => {
     dispatch({ type: 'SET_OPERATION_LOADING', payload: { isLoading: true, error: null } });
