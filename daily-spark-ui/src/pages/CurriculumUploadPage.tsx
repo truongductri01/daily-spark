@@ -5,7 +5,7 @@ import { useToastHelpers } from '../components/Toast';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 import { TutorialModal } from '../components';
 import { FileText, Eye, Save, ArrowLeft, AlertCircle, CheckCircle, Info, HelpCircle } from 'lucide-react';
-import { CurriculumFormData, CurriculumStatus, TopicStatus } from '../types';
+import { CurriculumFormData, CurriculumStatus } from '../types';
 import { isDemoUser, config } from '../utils/config';
 
 const CurriculumUploadPage: React.FC = () => {
@@ -301,11 +301,11 @@ const CurriculumUploadPage: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: TopicStatus) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case TopicStatus.Completed:
+      case 'Completed':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case TopicStatus.InProgress:
+      case 'InProgress':
         return <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>;
       default:
         return <div className="w-4 h-4 border-2 border-yellow-500 rounded-full"></div>;

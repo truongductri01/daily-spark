@@ -1,49 +1,49 @@
 using DailySpark.Functions.Model;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace DailySpark.Functions.Model;
 
 // For CreateCurriculum: Use Curriculum model with optional Id
 public record CreateCurriculumRequest
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string? Id { get; set; }
 
-    [JsonPropertyName("userId")]
+    [JsonProperty("userId")]
     public string UserId { get; set; } = string.Empty;
 
-    [JsonPropertyName("courseTitle")]
+    [JsonProperty("courseTitle")]
     public string CourseTitle { get; set; } = string.Empty;
 
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public CurriculumStatus Status { get; set; } = CurriculumStatus.NotStarted;
 
-    [JsonPropertyName("nextReminderDate")]
+    [JsonProperty("nextReminderDate")]
     public DateTime NextReminderDate { get; set; }
 
-    [JsonPropertyName("topics")]
+    [JsonProperty("topics")]
     public List<Topic> Topics { get; set; } = new List<Topic>();
 }
 
 // For UpdateCurriculum: Use Curriculum model with required Id and UserId
 public record UpdateCurriculumRequest
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonPropertyName("userId")]
+    [JsonProperty("userId")]
     public string UserId { get; set; } = string.Empty;
 
-    [JsonPropertyName("courseTitle")]
+    [JsonProperty("courseTitle")]
     public string? CourseTitle { get; set; }
 
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public CurriculumStatus? Status { get; set; }
 
-    [JsonPropertyName("nextReminderDate")]
+    [JsonProperty("nextReminderDate")]
     public DateTime? NextReminderDate { get; set; }
 
-    [JsonPropertyName("topics")]
+    [JsonProperty("topics")]
     public List<Topic>? Topics { get; set; }
 }
 

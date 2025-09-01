@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 using DailySpark.Functions.Model;
 using DailySpark.Functions.Helpers;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 // Use aliases to avoid ambiguity
 using CurriculumModel = DailySpark.Functions.Model.Curriculum;
@@ -140,7 +140,7 @@ public class CreateCurriculum
                 return new BadRequestObjectResult("Request body is required");
             }
 
-            CreateCurriculumRequest? requestData = JsonSerializer.Deserialize<CreateCurriculumRequest>(requestBody);
+            CreateCurriculumRequest? requestData = JsonConvert.DeserializeObject<CreateCurriculumRequest>(requestBody);
             if (requestData == null)
             {
                 return new BadRequestObjectResult("Invalid request format");
@@ -246,7 +246,7 @@ public class UpdateCurriculum
                 return new BadRequestObjectResult("Request body is required");
             }
 
-            UpdateCurriculumRequest? requestData = JsonSerializer.Deserialize<UpdateCurriculumRequest>(requestBody);
+            UpdateCurriculumRequest? requestData = JsonConvert.DeserializeObject<UpdateCurriculumRequest>(requestBody);
             if (requestData == null)
             {
                 return new BadRequestObjectResult("Invalid request format");
